@@ -22,6 +22,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+        }
+        debug {
+            minifyEnabled false
+            buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
+            //buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
         }
     }
 }
@@ -31,4 +37,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+    compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
 }

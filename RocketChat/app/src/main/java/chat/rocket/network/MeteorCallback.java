@@ -16,12 +16,16 @@ package chat.rocket.network;
  * limitations under the License.
  */
 
-/** Callback for asynchronous events caused by the WebSocket connection or received from the DDP server */
+import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification;
+
+/**
+ * Callback for asynchronous events caused by the WebSocket connection or received from the DDP server
+ */
 public interface MeteorCallback {
 
     public void onConnect(boolean signedInAutomatically);
 
-    public void onDisconnect(int code, String reason);
+    public void onDisconnect(WebSocketCloseNotification code, String reason);
 
     public void onDataAdded(String collectionName, String documentID, String newValuesJson);
 

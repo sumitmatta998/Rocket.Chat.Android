@@ -16,28 +16,26 @@ public class RocketApp extends Application implements PersistenceHandler {
     @Override
     public void onCreate() {
         super.onCreate();
-        connect();
+        setupMeteor();
     }
 
     public static RocketApp get(Context context) {
         return (RocketApp) context.getApplicationContext();
     }
 
-    private void connect() {
+    private void setupMeteor() {
         // enable logging of internal events for the library
-        Meteor.setLoggingEnabled(true);
-
-        // create a new instance (protocol version in second parameter is optional)
-        MeteorSingleton meteor = MeteorSingleton.createInstance(this, "ws://android-ddp-meteor.meteor.com/websocket");
+        MeteorSingleton.createInstance(this, BuildConfig.WS_URL, Meteor.SUPPORTED_DDP_VERSIONS[0]);
     }
-
+    String value;
     @Override
     public String getString(String key) {
-        return PreferenceManager.getDefaultSharedPreferences(this).getString(key, null);
+
+        return value;//PreferenceManager.getDefaultSharedPreferences(this).getString(key, null);
     }
 
     @Override
     public void putString(String key, String value) {
-        PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, value).apply();
+       this.value = value; //PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, value).apply();
     }
 }

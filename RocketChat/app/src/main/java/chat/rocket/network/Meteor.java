@@ -16,11 +16,15 @@ package chat.rocket.network;
  * limitations under the License.
  */
 
+import android.util.Log;
+
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,20 +33,24 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import de.tavendo.autobahn.WebSocket;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketHandler;
+import de.tavendo.autobahn.WebSocketOptions;
 
 /**
  * Client that connects to Meteor servers implementing the DDP protocol
  */
 public class Meteor {
 
-    private static final String TAG = "Meteor";
     /**
      * Supported versions of the DDP protocol in order of preference
      */
-    private static final String[] SUPPORTED_DDP_VERSIONS = {"1", "pre2", "pre1"};
+    public static final String[] SUPPORTED_DDP_VERSIONS = {"1", "pre2", "pre1"};
+    /**
+     * Whether logging should be enabled or not (behaviour can be adjusted in log() method
+     */
+    private static final boolean LOGGING_ENABLED = true;
     /**
      * The maximum number of attempts to re-connect to the server over WebSocket
      */
@@ -52,17 +60,17 @@ public class Meteor {
      */
     private static final ObjectMapper mObjectMapper = new ObjectMapper();
     /**
-     * Whether logging should be enabled or not
-     */
-    private static boolean mLoggingEnabled;
-    /**
      * The WebSocket connection that will be used for the data transfer
      */
     private final WebSocketConnection mConnection;
     /**
      * The callback that handles messages and events received from the WebSocket connection
      */
-    private final WebSocketHandler mWebSocketHandler;
+    private final WebSocket.WebSocketConnectionObserver mWebSocketObserver;
+    /**
+     * The web socket options
+     */
+    private WebSocketOptions mWebSocketOptions;
     /**
      * Map that tracks all pending Listener instances
      */
@@ -71,77 +79,96 @@ public class Meteor {
      * Messages that couldn't be dispatched yet and thus had to be queued
      */
     private final Queue<String> mQueuedMessages;
-    private final PersistenceHandler mPersistenceHandler;
-    /**
-     * The callback that will handle events and receive messages from this client
-     */
-    protected MeteorCallback mCallback;
+    private final PersistenceHandler persistenceHandler;
     private String mServerUri;
     private String mDdpVersion;
     /**
      * The number of unsuccessful attempts to re-connect in sequence
      */
     private int mReconnectAttempts;
+    /**
+     * The callback that will handle events and receive messages from this client
+     */
+    protected MeteorCallback mCallback;
     private String mSessionID;
-    private boolean mConnected;
+    private boolean mConnecting;
     private String mLoggedInUserId;
 
     /**
      * Returns a new instance for a client connecting to a server via DDP over websocket
      * <p/>
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
+     * or `wss://example.meteor.com/websocket`
      *
-     * @param persistenceHandler a data persistence handler
+     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
      * @param serverUri          the server URI to connect to
      */
     public Meteor(final PersistenceHandler persistenceHandler, final String serverUri) {
-        this(persistenceHandler, serverUri, SUPPORTED_DDP_VERSIONS[0]);
+        this(persistenceHandler, serverUri, null);
     }
 
     /**
      * Returns a new instance for a client connecting to a server via DDP over websocket
      * <p/>
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
+     * or `wss://example.meteor.com/websocket`
      *
-     * @param persistenceHandler a data persistence handler
+     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
      * @param serverUri          the server URI to connect to
-     * @param protocolVersion    the desired DDP protocol version
+     * @param protocolVersion    the desired DDP protocol version, default version if null given
      */
     public Meteor(final PersistenceHandler persistenceHandler, final String serverUri, final String protocolVersion) {
-        if (!isVersionSupported(protocolVersion)) {
+        this(persistenceHandler, serverUri, protocolVersion, new WebSocketOptions());
+    }
+
+    /**
+     * Returns a new instance for a client connecting to a server via DDP over websocket
+     * <p/>
+     * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
+     * or `wss://example.meteor.com/websocket`
+     *
+     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
+     * @param serverUri          the server URI to connect to
+     * @param protocolVersion    the desired DDP protocol version, default version if null given
+     * @param webSocketOptions   web socket options
+     */
+    public Meteor(final PersistenceHandler persistenceHandler, final String serverUri, String protocolVersion,
+                  WebSocketOptions webSocketOptions) {
+
+        if (protocolVersion == null) {
+            protocolVersion = SUPPORTED_DDP_VERSIONS[0];
+        } else if (!isVersionSupported(protocolVersion)) {
             throw new RuntimeException("DDP protocol version not supported: " + protocolVersion);
         }
 
         if (persistenceHandler == null) {
-            throw new RuntimeException("The persistenceHandler reference may not be null");
+            throw new RuntimeException("The PersistenceHandler reference may not be null");
         }
-        mPersistenceHandler = persistenceHandler;
+
+        // save the context reference
+        this.persistenceHandler = persistenceHandler;
 
         // create a new WebSocket connection for the data transfer
         mConnection = new WebSocketConnection();
 
+        mWebSocketOptions = webSocketOptions;
+
         // create a new handler that processes the messages and events received from the WebSocket connection
-        mWebSocketHandler = new WebSocketHandler() {
+        mWebSocketObserver = new WebSocket.WebSocketConnectionObserver() {
 
             @Override
             public void onOpen() {
-                log(TAG);
-                log("  onOpen");
-
-                mConnected = true;
+                log("onOpen()");
+                mConnecting = false;
                 mReconnectAttempts = 0;
                 connect(mSessionID);
             }
 
             @Override
-            public void onClose(int code, String reason) {
-                log(TAG);
-                log("  onClose");
-                log("    code == " + code);
-                log("    reason == " + reason);
-
-                final boolean lostConnection = mConnected;
-                mConnected = false;
+            public void onClose(WebSocketCloseNotification code, String reason) {
+                log("onClose()");
+                final boolean lostConnection = isConnected();
+                mConnecting = false;
                 if (lostConnection) {
                     mReconnectAttempts++;
                     if (mReconnectAttempts <= RECONNECT_ATTEMPTS_MAX) {
@@ -159,10 +186,17 @@ public class Meteor {
 
             @Override
             public void onTextMessage(String payload) {
-                log(TAG);
-                log("  onTextMessage");
-                log("    payload == " + payload);
                 handleMessage(payload);
+            }
+
+            @Override
+            public void onRawTextMessage(byte[] payload) {
+
+            }
+
+            @Override
+            public void onBinaryMessage(byte[] payload) {
+
             }
 
         };
@@ -179,8 +213,6 @@ public class Meteor {
         mDdpVersion = protocolVersion;
         // count the number of failed attempts to re-connect
         mReconnectAttempts = 0;
-
-        openConnection(false);
     }
 
     /**
@@ -204,22 +236,13 @@ public class Meteor {
     }
 
     /**
-     * Sets whether logging of internal events and data flow should be enabled for this library
-     *
-     * @param enabled whether logging should be enabled (`true`) or not (`false`)
-     */
-    public static void setLoggingEnabled(final boolean enabled) {
-        mLoggingEnabled = enabled;
-    }
-
-    /**
      * Logs a message if logging has been enabled
      *
      * @param message the message to log
      */
     public static void log(final String message) {
-        if (mLoggingEnabled) {
-            System.out.println(message);
+        if (LOGGING_ENABLED) {
+            Log.d("Meteor", message);
         }
     }
 
@@ -233,21 +256,12 @@ public class Meteor {
     }
 
     /**
-     * Creates an empty map for use as default parameter
-     *
-     * @return an empty map
-     */
-    private static Map<String, Object> emptyMap() {
-        return new HashMap<String, Object>();
-    }
-
-    /**
      * Returns whether this client is connected or not
      *
      * @return whether this client is connected
      */
     public boolean isConnected() {
-        return mConnected;
+        return mConnection != null && mConnection.isConnected();
     }
 
     /**
@@ -257,22 +271,27 @@ public class Meteor {
         openConnection(true);
     }
 
+    public boolean isConnecting() {
+        return mConnecting;
+    }
+
     /**
      * Opens a connection to the server over websocket
      *
      * @param isReconnect whether this is a re-connect attempt or not
      */
-    private void openConnection(final boolean isReconnect) {
+    public void openConnection(final boolean isReconnect) {
         if (isReconnect) {
-            if (mConnection.isConnected()) {
+            if (isConnected()) {
                 connect(mSessionID);
                 return;
             }
         }
 
         try {
-            mConnection.connect(mServerUri, mWebSocketHandler);
-        } catch (WebSocketException e) {
+            mConnecting = true;
+            mConnection.connect(new URI(mServerUri), mWebSocketObserver, mWebSocketOptions);
+        } catch (WebSocketException | URISyntaxException e) {
             if (mCallback != null) {
                 mCallback.onException(e);
             }
@@ -299,13 +318,14 @@ public class Meteor {
      * Disconnect the client from the server
      */
     public void disconnect() {
-        mConnected = false;
         mListeners.clear();
         mSessionID = null;
         mCallback = null;
+        mConnecting = false;
         try {
             mConnection.disconnect();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -332,19 +352,15 @@ public class Meteor {
      * @param message the string to send
      */
     private void send(final String message) {
-        log(TAG);
-        log("  send");
-        log("    message == " + message);
-
         if (message == null) {
             throw new RuntimeException("You cannot send `null` messages");
         }
 
-        if (mConnected) {
-            log("    dispatching");
+        if (isConnected()) {
+            log("SEND: " + message);
             mConnection.sendTextMessage(message);
         } else {
-            log("    queueing");
+            log("QUEUE: " + message);
             mQueuedMessages.add(message);
         }
     }
@@ -381,7 +397,9 @@ public class Meteor {
      * @param payload the JSON payload to process
      */
     private void handleMessage(final String payload) {
-        final JsonNode data;
+        log("RECEIVE: " + payload);
+
+        JsonNode data;
         try {
             data = mObjectMapper.readTree(payload);
         } catch (JsonProcessingException e) {
@@ -1020,12 +1038,21 @@ public class Meteor {
     }
 
     /**
+     * Creates an empty map for use as default parameter
+     *
+     * @return an empty map
+     */
+    private static Map<String, Object> emptyMap() {
+        return new HashMap<String, Object>();
+    }
+
+    /**
      * Saves the given login token to the preferences
      *
      * @param token the login token to save
      */
     private void saveLoginToken(final String token) {
-        mPersistenceHandler.putString(Preferences.Keys.LOGIN_TOKEN, token);
+        persistenceHandler.putString(Preferences.Keys.LOGIN_TOKEN, token);
     }
 
     /**
@@ -1034,8 +1061,9 @@ public class Meteor {
      * @return the last login token or `null`
      */
     private String getLoginToken() {
-        return mPersistenceHandler.getString(Preferences.Keys.LOGIN_TOKEN);
+        return persistenceHandler.getString(Preferences.Keys.LOGIN_TOKEN);
     }
+
 
     private void initSession() {
         // get the last login token
@@ -1053,12 +1081,6 @@ public class Meteor {
 
                 @Override
                 public void onError(final String error, final String reason, final String details) {
-                    // clear the user ID since automatic sign-in has failed
-                    mLoggedInUserId = null;
-
-                    // discard the token which turned out to be invalid
-                    saveLoginToken(null);
-
                     announceSessionReady(false);
                 }
 

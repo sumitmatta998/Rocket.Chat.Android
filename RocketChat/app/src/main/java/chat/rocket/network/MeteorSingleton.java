@@ -19,6 +19,8 @@ package chat.rocket.network;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification;
+
 /**
  * Provides a single access point to the `Meteor` class that can be used across `Activity` instances
  */
@@ -95,7 +97,7 @@ public class MeteorSingleton extends Meteor implements MeteorCallback {
     }
 
     @Override
-    public void onDisconnect(final int code, final String reason) {
+    public void onDisconnect(final WebSocketCloseNotification code, final String reason) {
         log(TAG);
         log("  onDisconnect");
         log("    code == " + code);
