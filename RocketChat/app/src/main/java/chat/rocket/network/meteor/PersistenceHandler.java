@@ -1,4 +1,4 @@
-package chat.rocket.network;
+package chat.rocket.network.meteor;
 
 /**
  * Created by julio on 16/11/15.

@@ -1,4 +1,4 @@
-package chat.rocket.network;
+package chat.rocket.network.meteor;
 
 /**
  * Copyright 2015 www.delight.im <info@delight.im>

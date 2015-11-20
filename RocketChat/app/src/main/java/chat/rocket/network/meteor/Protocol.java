@@ -1,4 +1,4 @@
-package chat.rocket.network;
+package chat.rocket.network.meteor;
 
 /**
  * Copyright 2014 www.delight.im <info@delight.im>
@@ -16,7 +16,8 @@ package chat.rocket.network;
  * limitations under the License.
  */
 
-import org.codehaus.jackson.JsonNode;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Constants used in the Distributed Data Protocol (DDP)
@@ -92,9 +93,9 @@ public class Protocol {
             if (json.has(Protocol.Field.ERROR)) {
                 final JsonNode errorJson = json.get(Protocol.Field.ERROR);
                 if (errorJson.isTextual()) {
-                    error = errorJson.getTextValue();
+                    error = errorJson.asText();
                 } else if (errorJson.isNumber()) {
-                    error = errorJson.getNumberValue().toString();
+                    error = errorJson.asText();
                 } else {
                     throw new RuntimeException("Unexpected data type of error.error json:" + json);
                 }
@@ -104,14 +105,14 @@ public class Protocol {
 
             final String reason;
             if (json.has(Protocol.Field.REASON)) {
-                reason = json.get(Protocol.Field.REASON).getTextValue();
+                reason = json.get(Protocol.Field.REASON).asText();
             } else {
                 reason = null;
             }
 
             final String details;
             if (json.has(Protocol.Field.DETAILS)) {
-                details = json.get(Protocol.Field.DETAILS).getTextValue();
+                details = json.get(Protocol.Field.DETAILS).asText();
             } else {
                 details = null;
             }

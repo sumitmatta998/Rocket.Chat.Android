@@ -3,36 +3,54 @@ package chat.rocket.network;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.rocket.network.listeners.AddUserToRoomListener;
+import chat.rocket.network.listeners.ArchiveRoomListener;
+import chat.rocket.network.listeners.CanAccessRoomListener;
+import chat.rocket.network.listeners.ChannelsListListener;
+import chat.rocket.network.listeners.CreateChannelListener;
+import chat.rocket.network.listeners.EraseRoomListener;
+import chat.rocket.network.listeners.JoinRoomListener;
+import chat.rocket.network.listeners.SaveRoomNameListener;
+import chat.rocket.network.listeners.SendMessageListener;
+import chat.rocket.network.listeners.UpdateMessageListener;
+import chat.rocket.network.meteor.Meteor;
+import chat.rocket.network.meteor.MeteorSingleton;
+import chat.rocket.network.meteor.ResultListener;
+
 /**
  * Created by julio on 19/11/15.
  */
-public class RocketAPI {
+public class RocketMethods {
     private Meteor mMeteor;
 
-    public RocketAPI(Meteor meteor) {
+    public RocketMethods() {
+        mMeteor = MeteorSingleton.getInstance();
+    }
+
+    public RocketMethods(Meteor meteor) {
         mMeteor = meteor;
     }
 
-    public void addUserToRoom(String rid, String username, ResultListener listener) {
+    public void addUserToRoom(String rid, String username, AddUserToRoomListener listener) {
         Map<String, String> data = new HashMap<>();
         data.put("rid", rid);
         data.put("username", username);
         mMeteor.call("addUserToRoom", new Object[]{data}, listener);
     }
 
-    public void archiveRoom(String rid, ResultListener listener) {
+    public void archiveRoom(String rid, ArchiveRoomListener listener) {
         mMeteor.call("archiveRoom", new Object[]{rid}, listener);
     }
 
-    public void canAccessRoom(String rid, String userId, ResultListener listener) {
-        mMeteor.call("archiveRoom", new Object[]{rid, userId}, listener);
+    public void canAccessRoom(String rid, String userId, CanAccessRoomListener listener) {
+        mMeteor.call("canAccessRoom", new Object[]{rid, userId}, listener);
     }
 
-    public void channelsList(ResultListener listener) {
+    public void channelsList(ChannelsListListener listener) {
         mMeteor.call("channelsList", listener);
     }
 
-    public void createChannel(String name, ResultListener listener) {
+    public void createChannel(String name, CreateChannelListener listener) {
         mMeteor.call("createChannel", new Object[]{name, new short[]{}}, listener);
     }
 
@@ -54,7 +72,7 @@ public class RocketAPI {
         mMeteor.call("deleteUser", new Object[]{userId}, listener);
     }
 
-    public void eraseRoom(String rid, ResultListener listener) {
+    public void eraseRoom(String rid, EraseRoomListener listener) {
         mMeteor.call("eraseRoom", new Object[]{rid}, listener);
     }
 
@@ -78,7 +96,7 @@ public class RocketAPI {
         mMeteor.call("hideRoom", new Object[]{rid}, listener);
     }
 
-    public void joinRoom(String rid, ResultListener listener) {
+    public void joinRoom(String rid, JoinRoomListener listener) {
         mMeteor.call("joinRoom", new Object[]{rid}, listener);
     }
 
@@ -97,6 +115,10 @@ public class RocketAPI {
 
     public void loadMissedMessages(String rid, long start, ResultListener listener) {
         mMeteor.call("loadMissedMessages", new Object[]{rid, start}, listener);
+    }
+
+    public void login(String username, String pass, ResultListener listener) {
+        mMeteor.loginWithUsername(username, pass, listener);
     }
 
     public void logoutCleanUp(ResultListener listener) {
@@ -143,7 +165,7 @@ public class RocketAPI {
         //TODO: How does it work???
     }
 
-    public void saveRoomName(String rid, String name, ResultListener listener) {
+    public void saveRoomName(String rid, String name, SaveRoomNameListener listener) {
         mMeteor.call("saveRoomName", new Object[]{rid, name}, listener);
     }
 
@@ -193,7 +215,7 @@ public class RocketAPI {
         mMeteor.call("sendForgotPasswordEmail", new Object[]{email}, listener);
     }
 
-    public void sendMessage(String rid, String msg, ResultListener listener) {
+    public void sendMessage(String rid, String msg, SendMessageListener listener) {
         Map<String, String> data = new HashMap<>();
 
         data.put("rid", rid);
@@ -219,13 +241,12 @@ public class RocketAPI {
         mMeteor.call("unarchiveRoom", new Object[]{rid}, listener);
     }
 
-    public void updateMessage(String msgId, String rid, String msg, ResultListener listener) {
+    public void updateMessage(String msgId, String rid, String msg, UpdateMessageListener listener) {
         Map<String, String> data = new HashMap<>();
 
         data.put("_id", msgId);
         data.put("rid", rid);
         data.put("msg", msg);
-        //TODO: check which fields to send!!
 
         mMeteor.call("updateMessage", new Object[]{data}, listener);
     }

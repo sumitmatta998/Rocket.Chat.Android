@@ -1,4 +1,4 @@
-package chat.rocket.network;
+package chat.rocket.network.meteor;
 
 /**
  * Copyright 2014 www.delight.im <info@delight.im>
@@ -18,9 +18,9 @@ package chat.rocket.network;
 
 import android.util.Log;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -33,6 +33,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import chat.rocket.app.BuildConfig;
 import de.tavendo.autobahn.WebSocket;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
@@ -50,7 +51,7 @@ public class Meteor {
     /**
      * Whether logging should be enabled or not (behaviour can be adjusted in log() method
      */
-    private static final boolean LOGGING_ENABLED = true;
+    private static final boolean LOGGING_ENABLED = BuildConfig.DEBUG;
     /**
      * The maximum number of attempts to re-connect to the server over WebSocket
      */
@@ -416,23 +417,23 @@ public class Meteor {
 
         if (data != null) {
             if (data.has(Protocol.Field.MESSAGE)) {
-                final String message = data.get(Protocol.Field.MESSAGE).getTextValue();
+                final String message = data.get(Protocol.Field.MESSAGE).asText();
 
                 if (message.equals(Protocol.Message.CONNECTED)) {
                     if (data.has(Protocol.Field.SESSION)) {
-                        mSessionID = data.get(Protocol.Field.SESSION).getTextValue();
+                        mSessionID = data.get(Protocol.Field.SESSION).asText();
                     }
 
                     // initialize the new session
                     initSession();
                 } else if (message.equals(Protocol.Message.FAILED)) {
                     if (data.has(Protocol.Field.VERSION)) {
-                        final String desiredVersion = data.get(Protocol.Field.VERSION).getTextValue();
+                        final String desiredVersion = data.get(Protocol.Field.VERSION).asText();
 
                         if (isVersionSupported(desiredVersion)) {
                             mDdpVersion = desiredVersion;
-
                             openConnection(true);
+
                         } else {
                             throw new RuntimeException("Protocol version not supported: " + desiredVersion);
                         }
@@ -440,23 +441,23 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.PING)) {
                     final String id;
                     if (data.has(Protocol.Field.ID)) {
-                        id = data.get(Protocol.Field.ID).getTextValue();
+                        id = data.get(Protocol.Field.ID).asText();
                     } else {
                         id = null;
                     }
-
                     sendPong(id);
+
                 } else if (message.equals(Protocol.Message.ADDED) || message.equals(Protocol.Message.ADDED_BEFORE)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).getTextValue();
+                        documentID = data.get(Protocol.Field.ID).asText();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).getTextValue();
+                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
                     } else {
                         collectionName = null;
                     }
@@ -474,14 +475,14 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.CHANGED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).getTextValue();
+                        documentID = data.get(Protocol.Field.ID).asText();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).getTextValue();
+                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
                     } else {
                         collectionName = null;
                     }
@@ -506,14 +507,14 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.REMOVED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).getTextValue();
+                        documentID = data.get(Protocol.Field.ID).asText();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).getTextValue();
+                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
                     } else {
                         collectionName = null;
                     }
@@ -529,17 +530,17 @@ public class Meteor {
                         // if the result is from a previous login attempt
                         if (isLoginResult(resultData)) {
                             // extract the login token for subsequent automatic re-login
-                            final String loginToken = resultData.get(Protocol.Field.TOKEN).getTextValue();
+                            final String loginToken = resultData.get(Protocol.Field.TOKEN).asText();
                             saveLoginToken(loginToken);
 
                             // extract the user's ID
-                            mLoggedInUserId = resultData.get(Protocol.Field.ID).getTextValue();
+                            mLoggedInUserId = resultData.get(Protocol.Field.ID).asText();
                         }
                     }
 
                     final String id;
                     if (data.has(Protocol.Field.ID)) {
-                        id = data.get(Protocol.Field.ID).getTextValue();
+                        id = data.get(Protocol.Field.ID).asText();
                     } else {
                         id = null;
                     }
@@ -565,10 +566,10 @@ public class Meteor {
                     }
                 } else if (message.equals(Protocol.Message.READY)) {
                     if (data.has(Protocol.Field.SUBS)) {
-                        final Iterator<JsonNode> elements = data.get(Protocol.Field.SUBS).getElements();
+                        final Iterator<JsonNode> elements = data.get(Protocol.Field.SUBS).elements();
                         String subscriptionId;
                         while (elements.hasNext()) {
-                            subscriptionId = elements.next().getTextValue();
+                            subscriptionId = elements.next().asText();
 
                             final Listener listener = mListeners.get(subscriptionId);
 
@@ -582,7 +583,7 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.NOSUB)) {
                     final String subscriptionId;
                     if (data.has(Protocol.Field.ID)) {
-                        subscriptionId = data.get(Protocol.Field.ID).getTextValue();
+                        subscriptionId = data.get(Protocol.Field.ID).asText();
                     } else {
                         subscriptionId = null;
                     }

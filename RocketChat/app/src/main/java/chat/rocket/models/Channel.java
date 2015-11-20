@@ -1,6 +1,6 @@
 package chat.rocket.models;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -20,10 +20,11 @@ public class Channel {
     private List<String> usernames;
     private long msgs;
     @JsonProperty("u")
-    private User user;
+    private Username username;
     @JsonProperty("default")
     private boolean defaultRoom;
     private TimeStamp lm;
+    private boolean archived;
 
     public TimeStamp getTs() {
         return ts;
@@ -81,12 +82,12 @@ public class Channel {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Username getUsername() {
+        return username;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsername(Username username) {
+        this.username = username;
     }
 
     public TimeStamp getLm() {
@@ -95,5 +96,13 @@ public class Channel {
 
     public void setLm(TimeStamp lm) {
         this.lm = lm;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }

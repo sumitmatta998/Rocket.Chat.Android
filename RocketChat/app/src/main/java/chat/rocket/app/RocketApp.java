@@ -2,11 +2,10 @@ package chat.rocket.app;
 
 import android.app.Application;
 import android.content.Context;
-import android.preference.PreferenceManager;
 
-import chat.rocket.network.Meteor;
-import chat.rocket.network.MeteorSingleton;
-import chat.rocket.network.PersistenceHandler;
+import chat.rocket.network.meteor.Meteor;
+import chat.rocket.network.meteor.MeteorSingleton;
+import chat.rocket.network.meteor.PersistenceHandler;
 
 /**
  * Created by julio on 16/11/15.

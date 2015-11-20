@@ -14,24 +14,154 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
+import java.util.List;
 
 import chat.rocket.app.R;
 import chat.rocket.models.Channel;
 import chat.rocket.models.Channels;
-import chat.rocket.network.MeteorCallback;
-import chat.rocket.network.MeteorSingleton;
-import chat.rocket.network.ResultListener;
-import chat.rocket.network.RocketAPI;
+import chat.rocket.models.Message;
+import chat.rocket.models.RoomId;
+import chat.rocket.models.Token;
+import chat.rocket.network.RocketMethods;
+import chat.rocket.network.RocketSubscriptions;
+import chat.rocket.network.Subscription;
+import chat.rocket.network.listeners.AddUserToRoomListener;
+import chat.rocket.network.listeners.ArchiveRoomListener;
+import chat.rocket.network.listeners.CanAccessRoomListener;
+import chat.rocket.network.listeners.ChannelsListListener;
+import chat.rocket.network.listeners.CreateChannelListener;
+import chat.rocket.network.listeners.EraseRoomListener;
+import chat.rocket.network.listeners.JoinRoomListener;
+import chat.rocket.network.listeners.LoginListener;
+import chat.rocket.network.listeners.SaveRoomNameListener;
+import chat.rocket.network.listeners.SendMessageListener;
+import chat.rocket.network.listeners.UpdateMessageListener;
+import chat.rocket.network.meteor.MeteorCallback;
+import chat.rocket.network.meteor.MeteorSingleton;
+import chat.rocket.network.meteor.ResultListener;
+import chat.rocket.network.meteor.SubscribeListener;
 import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, MeteorCallback {
-
+    ObjectMapper mMapper = new ObjectMapper();
     private MeteorSingleton mMeteor;
     private TextView mTextView;
+    private RocketMethods mRocketMethods;
+    private RocketSubscriptions mRocketSubscriptions;
+    private AddUserToRoomListener mAddUserToRoomListener = new AddUserToRoomListener() {
+        @Override
+        public void onSuccess(Boolean result) {
+            log("added user to room?" + result);
+        }
+    };
+
+    private JoinRoomListener mJoinRoomListener = new JoinRoomListener() {
+        @Override
+        public void onSuccess(Void result) {
+            log(result);
+        }
+    };
+
+    private CanAccessRoomListener mCanAccessRoomListener = new CanAccessRoomListener() {
+        @Override
+        public void onSuccess(Channel result) {
+            log(result);
+            if ("c".equals(result.getType())) {
+                mRocketMethods.joinRoom(result.getId(), mJoinRoomListener);
+            }
+        }
+    };
+
+    private UpdateMessageListener mUpdateMessageListener = new UpdateMessageListener() {
+        @Override
+        public void onSuccess(Void result) {
+            log(result);
+        }
+    };
+
+    private SendMessageListener mSendMessageListener = new SendMessageListener() {
+        @Override
+        public void onSuccess(Message result) {
+            log(result);
+            mRocketMethods.updateMessage(result.getId(), result.getRid(), "Hello mother fucker", mUpdateMessageListener);
+        }
+    };
+
+    private SaveRoomNameListener mSaveRoomNameListener = new SaveRoomNameListener() {
+        @Override
+        public void onSuccess(String result) {
+            log(result);
+        }
+    };
+    private CreateChannelListener mCreateChannelListener = new CreateChannelListener() {
+        @Override
+        public void onSuccess(RoomId result) {
+            log(result);
+            mRocketMethods.addUserToRoom(result.getRid(), "cotta.bueno.cesar.julio", mAddUserToRoomListener);
+            mRocketMethods.canAccessRoom(result.getRid(), mMeteor.getUserId(), mCanAccessRoomListener);
+            mRocketMethods.saveRoomName(result.getRid(), "sweet-alice-" + System.currentTimeMillis(), mSaveRoomNameListener);
+        }
+    };
+
+    private ArchiveRoomListener mArchiveRoomListener = new ArchiveRoomListener() {
+        @Override
+        public void onSuccess(List<Integer> result) {
+            if (result.size() > 0) {
+                log("archived one room, I guess");
+            }
+        }
+    };
+
+    private EraseRoomListener mEraseRoomListener = new EraseRoomListener() {
+        @Override
+        public void onSuccess(Integer result) {
+            log(result);
+        }
+    };
+    private ChannelsListListener mChannelsListListener = new ChannelsListListener() {
+        @Override
+        public void onSuccess(Channels result) {
+            log(result);
+            for (Channel c : result.getChannels()) {
+                if (c.getName().contains("alice")) {
+                    if (!c.isArchived()) {
+                        mRocketMethods.archiveRoom(c.getId(), mArchiveRoomListener);
+                    }
+                }
+                if (c.isArchived() || c.getName().startsWith("jul")) {
+                    mRocketMethods.eraseRoom(c.getId(), mEraseRoomListener);
+                }
+                if (c.getName().equals("general")) {
+                    mRocketMethods.sendMessage(c.getId(), "hello world!", mSendMessageListener);
+                }
+            }
+            mRocketMethods.createChannel("alice" + System.currentTimeMillis(), mCreateChannelListener);
+        }
+    };
+
+    private ResultListener mLoginListener = new LoginListener() {
+        @Override
+        public void onSuccess(Token result) {
+            log(result);
+            mRocketMethods.channelsList(mChannelsListListener);
+            Subscription subscription = mRocketSubscriptions.userData(new SubscribeListener() {
+                @Override
+                public void onSuccess() {
+                    log("success sub");
+                }
+
+                @Override
+                public void onError(String error, String reason, String details) {
+                    log("error: " + error + ", reason: " + reason + ", details: " + details);
+                }
+            });
+            subscription.unSubscribe();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +171,6 @@ public class HomeActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         mTextView = (TextView) findViewById(R.id.text);
-
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -63,101 +192,17 @@ public class HomeActivity extends AppCompatActivity
         mMeteor.setCallback(this);
         if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
             mMeteor.reconnect();
-        } else {
-            if (mMeteor.isConnected()) {
-                log("Is logged in: " + mMeteor.isLoggedIn());
-                log("User ID: " + mMeteor.getUserId());
-                mMeteor.call("channelsList", mChannelsListener);
-            }
         }
+        mRocketMethods = new RocketMethods(mMeteor);
+        mRocketSubscriptions = new RocketSubscriptions(mMeteor);
     }
-
-
-    private ResultListener mAddUserToRoomListener = new ResultListener() {
-        @Override
-        public void onSuccess(String result) {
-            log("Result: " + result);
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-            log("Error: " + error + " / " + reason + " / " + details);
-        }
-    };
-    private ResultListener mCreateChannelListener = new ResultListener() {
-        @Override
-        public void onSuccess(String result) {
-            ObjectMapper mapper = new ObjectMapper();
-            String id = "";
-            try {
-                id = mapper.readTree(result).get("rid").asText();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            new RocketAPI(mMeteor).addUserToRoom(id, "cotta.bueno.cesar.julio", mAddUserToRoomListener);
-            log("Result: " + id);
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-            log("Error: " + error + " / " + reason + " / " + details);
-        }
-    };
-    private ResultListener mChannelsListener = new ResultListener() {
-        @Override
-        public void onSuccess(String result) {
-            log("Result: " + result);
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                Channels channels = mapper.readValue(result, Channels.class);
-                String newChannelName = "juliohannel123456";
-                for (Channel c : channels.getChannels()) {
-                    if (c.getName().equals(newChannelName)) {
-                        return;
-                    }
-                }
-
-                mMeteor.call("createChannel", new Object[]{newChannelName, new short[]{}}, mCreateChannelListener);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-            log("Error: " + error + " / " + reason + " / " + details);
-        }
-    };
 
     @Override
     public void onConnect(final boolean signedInAutomatically) {
-        log("Connected");
-        log("Is logged in: " + mMeteor.isLoggedIn());
-        log("User ID: " + mMeteor.getUserId());
-
         if (signedInAutomatically) {
-            log("Successfully logged in automatically");
+
         } else {
-            // sign in to the server
-            mMeteor.loginWithUsername("julio.cesar.bueno.cotta", "google", new ResultListener() {
-
-                @Override
-                public void onSuccess(String result) {
-                    log("Successfully logged in: " + result);
-
-                    log("Is logged in: " + mMeteor.isLoggedIn());
-                    log("User ID: " + mMeteor.getUserId());
-                    if (mMeteor.isConnected()) {
-                        mMeteor.call("channelsList", mChannelsListener);
-
-                    }
-                }
-
-                @Override
-                public void onError(String error, String reason, String details) {
-                    log("Could not log in: " + error + " / " + reason + " / " + details);
-                }
-            });
+            mRocketMethods.login("julio.cesar.bueno.cotta", "google", mLoginListener);
         }
     }
 
@@ -192,7 +237,17 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    private void log(String txt) {
+    private void log(Object object) {
+        String txt = null;
+        if (object instanceof String) {
+            txt = (String) object;
+        } else {
+            try {
+                txt = mMapper.writeValueAsString(object);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
         Log.d("HomeActivity", txt);
         mTextView.append(txt);
         mTextView.append("\n");

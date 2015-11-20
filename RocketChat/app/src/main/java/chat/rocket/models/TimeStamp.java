@@ -1,6 +1,7 @@
 package chat.rocket.models;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by julio on 18/11/15.

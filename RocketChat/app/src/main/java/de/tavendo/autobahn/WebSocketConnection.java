@@ -66,8 +66,7 @@ public class WebSocketConnection implements WebSocket {
         mPreviousConnection = false;
     }
 
-
-    //
+    
     // Forward to the writer thread
     public void sendTextMessage(String payload) {
         mWebSocketWriter.forward(new WebSocketMessage.TextMessage(payload));

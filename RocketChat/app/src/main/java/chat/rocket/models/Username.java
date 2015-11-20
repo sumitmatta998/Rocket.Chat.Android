@@ -1,11 +1,12 @@
 package chat.rocket.models;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by julio on 18/11/15.
  */
-public class User {
+public class Username {
     @JsonProperty("_id")
     private String id;
     @JsonProperty("username")

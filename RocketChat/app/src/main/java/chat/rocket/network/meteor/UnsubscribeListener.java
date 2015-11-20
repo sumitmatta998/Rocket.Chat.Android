@@ -1,4 +1,4 @@
-package chat.rocket.network;
+package chat.rocket.network.meteor;
 
 /**
  * Copyright 2014 www.delight.im <info@delight.im>
@@ -16,10 +16,8 @@ package chat.rocket.network;
  * limitations under the License.
  */
 
-public interface ResultListener extends Listener {
+public interface UnsubscribeListener extends Listener {
 
-    public void onSuccess(String result);
-
-    public void onError(String error, String reason, String details);
+    public void onSuccess();
 
 }
