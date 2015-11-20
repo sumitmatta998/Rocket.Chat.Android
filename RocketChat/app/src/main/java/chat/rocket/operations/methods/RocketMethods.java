@@ -18,6 +18,7 @@ import chat.rocket.operations.methods.listeners.EraseRoomListener;
 import chat.rocket.operations.methods.listeners.HideRoomListener;
 import chat.rocket.operations.methods.listeners.JoinRoomListener;
 import chat.rocket.operations.methods.listeners.LeaveRoomListener;
+import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
 import chat.rocket.operations.methods.listeners.UpdateMessageListener;
@@ -109,8 +110,8 @@ public class RocketMethods {
         mMeteor.call("leaveRoom", new Object[]{rid}, listener);
     }
 
-    public void loadHistory(String rid, long end, int limit, long ls, ResultListener listener) {
-        //TODO: Not sure of what the end and ls parameters are...check it!
+    public void loadHistory(String rid, long end, int limit, long ls, LoadHistoryListener listener) {
+        //TODO: Not sure of what the "end" and "ls" parameters are...check it!
         mMeteor.call("loadHistory", new Object[]{rid}, listener);
     }
 

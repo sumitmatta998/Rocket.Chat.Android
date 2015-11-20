@@ -23,6 +23,7 @@ import chat.rocket.app.R;
 import chat.rocket.models.Channel;
 import chat.rocket.models.Channels;
 import chat.rocket.models.Message;
+import chat.rocket.models.Messages;
 import chat.rocket.models.RoomId;
 import chat.rocket.models.Token;
 import chat.rocket.operations.RocketSubscriptions;
@@ -45,6 +46,7 @@ import chat.rocket.operations.methods.listeners.EraseRoomListener;
 import chat.rocket.operations.methods.listeners.HideRoomListener;
 import chat.rocket.operations.methods.listeners.JoinRoomListener;
 import chat.rocket.operations.methods.listeners.LeaveRoomListener;
+import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.LogListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
@@ -166,7 +168,12 @@ public class HomeActivity extends AppCompatActivity
         public void onSuccess(Integer result) {
             log(result);
             mRocketMethods.loadLocale("pt", mLocaleListener);
-            //mRocketMethods.
+        }
+    };
+    private LoadHistoryListener mLoadHistoryListener = new LoadHistoryListener() {
+        @Override
+        public void onSuccess(Messages result) {
+            log(result);
         }
     };
     private ChannelsListListener mChannelsListListener = new ChannelsListListener() {
@@ -194,6 +201,7 @@ public class HomeActivity extends AppCompatActivity
                         }
                     }
                 }
+                mRocketMethods.loadHistory(c.getId(), 0, 0, 0, mLoadHistoryListener);
             }
             mRocketMethods.createChannel("alice" + System.currentTimeMillis(), mCreateChannelListener);
             mRocketMethods.createPrivateGroup("baka-group" + System.currentTimeMillis(), mCreatePrivateGroupListener);
@@ -204,7 +212,7 @@ public class HomeActivity extends AppCompatActivity
         @Override
         public void onSuccess(Token result) {
             log(result);
-            testMethods();
+           // testMethods();
         }
     };
     private UnsubscribeListener mUnsubscribeListener = new UnsubscribeListener() {
@@ -263,7 +271,7 @@ public class HomeActivity extends AppCompatActivity
         if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
             mMeteor.reconnect();
         } else {
-            testMethods();
+            //testMethods();
         }
     }
 
@@ -272,7 +280,7 @@ public class HomeActivity extends AppCompatActivity
         if (signedInAutomatically) {
 
         } else {
-            mRocketMethods.login("julio.cesar.bueno.cotta", "google", mLoginListener);
+            mRocketMethods.login("juliocbcotta+1@gmail.com", "google", mLoginListener);
         }
     }
 

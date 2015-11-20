@@ -25,7 +25,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 import com.squareup.okhttp.ws.WebSocket;
 import com.squareup.okhttp.ws.WebSocketCall;
 import com.squareup.okhttp.ws.WebSocketListener;
@@ -42,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.BuildConfig;
 import okio.Buffer;
-import okio.BufferedSource;
 
 /**
  * Client that connects to Meteor servers implementing the DDP protocol
@@ -153,15 +154,8 @@ public class Meteor {
             }
 
             @Override
-            public void onMessage(BufferedSource payload, WebSocket.PayloadType type) throws IOException {
-                try {
-                    handleMessage(payload.readUtf8());
-                } catch (Exception e) {
-                    onException(e);
-                } finally {
-                    payload.close();
-                }
-
+            public void onMessage(ResponseBody message) throws IOException {
+                handleMessage(message.string());
             }
 
             @Override
@@ -370,7 +364,10 @@ public class Meteor {
         if (isConnected()) {
             log("SEND: " + message);
             try {
-                mConnection.sendMessage(WebSocket.PayloadType.TEXT, new Buffer().writeUtf8(message));
+                synchronized (mConnection) {
+                    RequestBody request = RequestBody.create(WebSocket.TEXT, message);
+                    mConnection.sendMessage(request);
+                }
             } catch (Exception e) {
                 onException(e);
             }
