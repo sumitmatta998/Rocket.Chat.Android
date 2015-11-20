@@ -27,6 +27,7 @@ public class SplashActivity extends BaseActivity {
                 .compose(RxLifecycle.bindActivity(lifecycle())).subscribe(aBoolean -> {
             Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
             startActivity(intent);
+            finish();
         });
     }
 }

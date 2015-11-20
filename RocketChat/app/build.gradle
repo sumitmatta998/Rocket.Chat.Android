@@ -11,8 +11,8 @@ plugins {
     id "me.tatarka.retrolambda" version "3.2.4"
 }
 apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'io.fabric'
+apply plugin: 'com.neenbedankt.android-apt'
 
 repositories {
     mavenCentral()
@@ -57,8 +57,8 @@ android {
             minifyEnabled false
             resValue "string", "facebook_app_id", "1685539698348386"
             buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
-           // buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
-            ext.enableCrashlytics = false
+            // buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+
         }
     }
     compileOptions {
@@ -86,7 +86,6 @@ dependencies {
     compile 'io.reactivex:rxjava:1.0.16'
     compile 'com.trello:rxlifecycle:0.3.0'
     compile 'com.trello:rxlifecycle-components:0.3.0'
-
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true;
     }
