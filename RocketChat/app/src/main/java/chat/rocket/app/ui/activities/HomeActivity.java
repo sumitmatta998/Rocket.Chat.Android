@@ -25,24 +25,31 @@ import chat.rocket.models.Channels;
 import chat.rocket.models.Message;
 import chat.rocket.models.RoomId;
 import chat.rocket.models.Token;
-import chat.rocket.network.RocketMethods;
-import chat.rocket.network.RocketSubscriptions;
-import chat.rocket.network.Subscription;
-import chat.rocket.network.listeners.AddUserToRoomListener;
-import chat.rocket.network.listeners.ArchiveRoomListener;
-import chat.rocket.network.listeners.CanAccessRoomListener;
-import chat.rocket.network.listeners.ChannelsListListener;
-import chat.rocket.network.listeners.CreateChannelListener;
-import chat.rocket.network.listeners.EraseRoomListener;
-import chat.rocket.network.listeners.JoinRoomListener;
-import chat.rocket.network.listeners.LoginListener;
-import chat.rocket.network.listeners.SaveRoomNameListener;
-import chat.rocket.network.listeners.SendMessageListener;
-import chat.rocket.network.listeners.UpdateMessageListener;
-import chat.rocket.network.meteor.MeteorCallback;
-import chat.rocket.network.meteor.MeteorSingleton;
-import chat.rocket.network.meteor.ResultListener;
-import chat.rocket.network.meteor.SubscribeListener;
+import chat.rocket.operations.RocketSubscriptions;
+import chat.rocket.operations.Subscription;
+import chat.rocket.operations.meteor.MeteorCallback;
+import chat.rocket.operations.meteor.MeteorSingleton;
+import chat.rocket.operations.meteor.ResultListener;
+import chat.rocket.operations.meteor.SubscribeListener;
+import chat.rocket.operations.meteor.UnsubscribeListener;
+import chat.rocket.operations.methods.RocketMethods;
+import chat.rocket.operations.methods.listeners.AddUserToRoomListener;
+import chat.rocket.operations.methods.listeners.ArchiveRoomListener;
+import chat.rocket.operations.methods.listeners.CanAccessRoomListener;
+import chat.rocket.operations.methods.listeners.ChannelsListListener;
+import chat.rocket.operations.methods.listeners.CreateChannelListener;
+import chat.rocket.operations.methods.listeners.CreateDirectMessageListener;
+import chat.rocket.operations.methods.listeners.CreatePrivateGroupListener;
+import chat.rocket.operations.methods.listeners.DeleteMessageListener;
+import chat.rocket.operations.methods.listeners.EraseRoomListener;
+import chat.rocket.operations.methods.listeners.HideRoomListener;
+import chat.rocket.operations.methods.listeners.JoinRoomListener;
+import chat.rocket.operations.methods.listeners.LeaveRoomListener;
+import chat.rocket.operations.methods.listeners.LogListener;
+import chat.rocket.operations.methods.listeners.LoginListener;
+import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
+import chat.rocket.operations.methods.listeners.SendMessageListener;
+import chat.rocket.operations.methods.listeners.UpdateMessageListener;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, MeteorCallback {
@@ -121,6 +128,47 @@ public class HomeActivity extends AppCompatActivity
             log(result);
         }
     };
+    private LeaveRoomListener mLeaveRoomListener = new LeaveRoomListener() {
+        @Override
+        public void onSuccess(Void result) {
+            log(result);
+        }
+    };
+    private CreatePrivateGroupListener mCreatePrivateGroupListener = new CreatePrivateGroupListener() {
+        @Override
+        public void onSuccess(RoomId result) {
+            log(result);
+
+        }
+    };
+    private DeleteMessageListener mDeleteMessageListener = new DeleteMessageListener() {
+        @Override
+        public void onSuccess(Void result) {
+            log(result);
+        }
+    };
+    private CreateDirectMessageListener mCreateDirectMessageListener = new CreateDirectMessageListener() {
+        @Override
+        public void onSuccess(RoomId result) {
+            log(result);
+            mRocketMethods.sendMessage(result.getRid(), "baka baka baka", new SendMessageListener() {
+                @Override
+                public void onSuccess(Message result) {
+                    log(result);
+                    mRocketMethods.deleteMessage(result.getId(), mDeleteMessageListener);
+                }
+            });
+        }
+    };
+    private ResultListener mLocaleListener = new LogListener("locale");
+    private HideRoomListener mHideRoomListener = new HideRoomListener() {
+        @Override
+        public void onSuccess(Integer result) {
+            log(result);
+            mRocketMethods.loadLocale("pt", mLocaleListener);
+            //mRocketMethods.
+        }
+    };
     private ChannelsListListener mChannelsListListener = new ChannelsListListener() {
         @Override
         public void onSuccess(Channels result) {
@@ -131,14 +179,24 @@ public class HomeActivity extends AppCompatActivity
                         mRocketMethods.archiveRoom(c.getId(), mArchiveRoomListener);
                     }
                 }
-                if (c.isArchived() || c.getName().startsWith("jul")) {
+                if (c.isArchived() || c.getName().startsWith("tes")) {
+                    mRocketMethods.leaveRoom(c.getId(), mLeaveRoomListener);
+                    mRocketMethods.hideRoom(c.getId(), mHideRoomListener);
                     mRocketMethods.eraseRoom(c.getId(), mEraseRoomListener);
                 }
                 if (c.getName().equals("general")) {
                     mRocketMethods.sendMessage(c.getId(), "hello world!", mSendMessageListener);
                 }
+                if (c.getUsernames().size() > 1) {
+                    for (String username : c.getUsernames()) {
+                        if (!username.equals("julio.cesar.bueno.cotta")) {
+                            mRocketMethods.createDirectMessage(username, mCreateDirectMessageListener);
+                        }
+                    }
+                }
             }
             mRocketMethods.createChannel("alice" + System.currentTimeMillis(), mCreateChannelListener);
+            mRocketMethods.createPrivateGroup("baka-group" + System.currentTimeMillis(), mCreatePrivateGroupListener);
         }
     };
 
@@ -147,6 +205,12 @@ public class HomeActivity extends AppCompatActivity
         public void onSuccess(Token result) {
             log(result);
             testMethods();
+        }
+    };
+    private UnsubscribeListener mUnsubscribeListener = new UnsubscribeListener() {
+        @Override
+        public void onSuccess() {
+            log("success unsub");
         }
     };
 
@@ -163,7 +227,7 @@ public class HomeActivity extends AppCompatActivity
                 log("error: " + error + ", reason: " + reason + ", details: " + details);
             }
         });
-        subscription.unSubscribe();
+        subscription.unSubscribe(mUnsubscribeListener);
     }
 
     @Override
@@ -201,7 +265,6 @@ public class HomeActivity extends AppCompatActivity
         } else {
             testMethods();
         }
-
     }
 
     @Override

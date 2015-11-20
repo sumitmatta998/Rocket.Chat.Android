@@ -3,9 +3,9 @@ package chat.rocket.app;
 import android.app.Application;
 import android.content.Context;
 
-import chat.rocket.network.meteor.Meteor;
-import chat.rocket.network.meteor.MeteorSingleton;
-import chat.rocket.network.meteor.Persistence;
+import chat.rocket.operations.meteor.Meteor;
+import chat.rocket.operations.meteor.MeteorSingleton;
+import chat.rocket.operations.meteor.Persistence;
 
 /**
  * Created by julio on 16/11/15.
