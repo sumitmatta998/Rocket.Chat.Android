@@ -1,8 +1,23 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
+plugins {
+    id "me.tatarka.retrolambda" version "3.2.4"
+}
 apply plugin: 'com.android.application'
-apply plugin: 'com.android.databinding'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'io.fabric'
+
 repositories {
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 android {
@@ -16,6 +31,15 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    signingConfigs {
+        debug {
+            storeFile file('../keys/debug.keystore')
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storePassword 'android'
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/ASL2.0'
         exclude 'META-INF/LICENSE'
@@ -26,13 +50,20 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue "string", "facebook_app_id", "12345678"
             buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
         }
         debug {
             minifyEnabled false
+            resValue "string", "facebook_app_id", "1685539698348386"
             buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
            // buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+            ext.enableCrashlytics = false
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -41,7 +72,22 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+
     compile 'com.fasterxml.jackson.core:jackson-core:2.6.3'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
     compile 'com.squareup.okhttp:okhttp-ws:2.6.0-SNAPSHOT'
+
+    compile 'com.facebook.android:facebook-android-sdk:4.8.1'
+
+    apt 'com.google.dagger:dagger-compiler:2.0.1'
+    compile 'com.google.dagger:dagger:2.0.1'
+
+    compile 'io.reactivex:rxandroid:1.0.1'
+    compile 'io.reactivex:rxjava:1.0.16'
+    compile 'com.trello:rxlifecycle:0.3.0'
+    compile 'com.trello:rxlifecycle-components:0.3.0'
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
+        transitive = true;
+    }
 }
