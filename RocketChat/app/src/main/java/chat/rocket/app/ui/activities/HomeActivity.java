@@ -43,7 +43,6 @@ import chat.rocket.network.meteor.MeteorCallback;
 import chat.rocket.network.meteor.MeteorSingleton;
 import chat.rocket.network.meteor.ResultListener;
 import chat.rocket.network.meteor.SubscribeListener;
-import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, MeteorCallback {
@@ -147,21 +146,25 @@ public class HomeActivity extends AppCompatActivity
         @Override
         public void onSuccess(Token result) {
             log(result);
-            mRocketMethods.channelsList(mChannelsListListener);
-            Subscription subscription = mRocketSubscriptions.userData(new SubscribeListener() {
-                @Override
-                public void onSuccess() {
-                    log("success sub");
-                }
-
-                @Override
-                public void onError(String error, String reason, String details) {
-                    log("error: " + error + ", reason: " + reason + ", details: " + details);
-                }
-            });
-            subscription.unSubscribe();
+            testMethods();
         }
     };
+
+    private void testMethods() {
+        mRocketMethods.channelsList(mChannelsListListener);
+        Subscription subscription = mRocketSubscriptions.userData(new SubscribeListener() {
+            @Override
+            public void onSuccess() {
+                log("success sub");
+            }
+
+            @Override
+            public void onError(String error, String reason, String details) {
+                log("error: " + error + ", reason: " + reason + ", details: " + details);
+            }
+        });
+        subscription.unSubscribe();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,11 +193,15 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         mMeteor = MeteorSingleton.getInstance();
         mMeteor.setCallback(this);
-        if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
-            mMeteor.reconnect();
-        }
         mRocketMethods = new RocketMethods(mMeteor);
         mRocketSubscriptions = new RocketSubscriptions(mMeteor);
+
+        if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
+            mMeteor.reconnect();
+        } else {
+            testMethods();
+        }
+
     }
 
     @Override
@@ -207,7 +214,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
-    public void onDisconnect(WebSocketCloseNotification code, String reason) {
+    public void onDisconnect(int code, String reason) {
         log("Disconnected code:" + code + ", reason:" + reason);
     }
 
@@ -249,8 +256,10 @@ public class HomeActivity extends AppCompatActivity
             }
         }
         Log.d("HomeActivity", txt);
-        mTextView.append(txt);
-        mTextView.append("\n");
+        synchronized (mTextView) {
+            mTextView.append(txt);
+            mTextView.append("\n");
+        }
     }
 
     @Override

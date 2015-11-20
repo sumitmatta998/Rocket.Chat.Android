@@ -19,7 +19,6 @@ package chat.rocket.network.meteor;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification;
 
 /**
  * Provides a single access point to the `Meteor` class that can be used across `Activity` instances
@@ -30,27 +29,27 @@ public class MeteorSingleton extends Meteor implements MeteorCallback {
     private static MeteorSingleton mInstance;
     private final List<MeteorCallback> mCallbacks = new LinkedList<MeteorCallback>();
 
-    private MeteorSingleton(final PersistenceHandler persistenceHandler, final String serverUri) {
-        super(persistenceHandler, serverUri);
+    private MeteorSingleton(final Persistence persistence, final String serverUri) {
+        super(persistence, serverUri);
     }
 
-    private MeteorSingleton(final PersistenceHandler persistenceHandler, final String serverUri, final String protocolVersion) {
-        super(persistenceHandler, serverUri, protocolVersion);
+    private MeteorSingleton(final Persistence persistence, final String serverUri, final String protocolVersion) {
+        super(persistence, serverUri, protocolVersion);
     }
 
-    public synchronized static MeteorSingleton createInstance(final PersistenceHandler persistenceHandler, final String serverUri) {
-        return createInstance(persistenceHandler, serverUri, null);
+    public synchronized static MeteorSingleton createInstance(final Persistence persistence, final String serverUri) {
+        return createInstance(persistence, serverUri, null);
     }
 
-    public synchronized static MeteorSingleton createInstance(final PersistenceHandler persistenceHandler, final String serverUri, final String protocolVersion) {
+    public synchronized static MeteorSingleton createInstance(final Persistence persistence, final String serverUri, final String protocolVersion) {
         if (mInstance != null) {
             throw new RuntimeException("An instance has already been created");
         }
 
         if (protocolVersion == null) {
-            mInstance = new MeteorSingleton(persistenceHandler, serverUri);
+            mInstance = new MeteorSingleton(persistence, serverUri);
         } else {
-            mInstance = new MeteorSingleton(persistenceHandler, serverUri, protocolVersion);
+            mInstance = new MeteorSingleton(persistence, serverUri, protocolVersion);
         }
 
         mInstance.mCallback = mInstance;
@@ -97,7 +96,7 @@ public class MeteorSingleton extends Meteor implements MeteorCallback {
     }
 
     @Override
-    public void onDisconnect(final WebSocketCloseNotification code, final String reason) {
+    public void onDisconnect(final int code, final String reason) {
         log(TAG);
         log("  onDisconnect");
         log("    code == " + code);

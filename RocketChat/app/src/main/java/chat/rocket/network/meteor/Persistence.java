@@ -3,7 +3,7 @@ package chat.rocket.network.meteor;
 /**
  * Created by julio on 16/11/15.
  */
-public interface PersistenceHandler {
+public interface Persistence {
     String getString(String key);
 
     void putString(String key, String value);

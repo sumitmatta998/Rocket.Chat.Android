@@ -5,12 +5,12 @@ import android.content.Context;
 
 import chat.rocket.network.meteor.Meteor;
 import chat.rocket.network.meteor.MeteorSingleton;
-import chat.rocket.network.meteor.PersistenceHandler;
+import chat.rocket.network.meteor.Persistence;
 
 /**
  * Created by julio on 16/11/15.
  */
-public class RocketApp extends Application implements PersistenceHandler {
+public class RocketApp extends Application implements Persistence {
 
     @Override
     public void onCreate() {

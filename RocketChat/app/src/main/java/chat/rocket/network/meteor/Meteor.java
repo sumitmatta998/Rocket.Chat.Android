@@ -16,15 +16,21 @@ package chat.rocket.network.meteor;
  * limitations under the License.
  */
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ws.WebSocket;
+import com.squareup.okhttp.ws.WebSocketCall;
+import com.squareup.okhttp.ws.WebSocketListener;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,12 +38,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.BuildConfig;
-import de.tavendo.autobahn.WebSocket;
-import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketOptions;
+import okio.Buffer;
+import okio.BufferedSource;
 
 /**
  * Client that connects to Meteor servers implementing the DDP protocol
@@ -60,18 +65,17 @@ public class Meteor {
      * Instance of Jackson library's ObjectMapper that converts between JSON and Java objects (POJOs)
      */
     private static final ObjectMapper mObjectMapper = new ObjectMapper();
+
+    private final Handler mHandler;
     /**
      * The WebSocket connection that will be used for the data transfer
      */
-    private final WebSocketConnection mConnection;
+    private WebSocket mConnection;
     /**
      * The callback that handles messages and events received from the WebSocket connection
      */
-    private final WebSocket.WebSocketConnectionObserver mWebSocketObserver;
-    /**
-     * The web socket options
-     */
-    private WebSocketOptions mWebSocketOptions;
+    private final WebSocketListener mWebSocketObserver;
+
     /**
      * Map that tracks all pending Listener instances
      */
@@ -80,7 +84,7 @@ public class Meteor {
      * Messages that couldn't be dispatched yet and thus had to be queued
      */
     private final Queue<String> mQueuedMessages;
-    private final PersistenceHandler persistenceHandler;
+    private final Persistence persistence;
     private String mServerUri;
     private String mDdpVersion;
     /**
@@ -101,11 +105,11 @@ public class Meteor {
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
      * or `wss://example.meteor.com/websocket`
      *
-     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
-     * @param serverUri          the server URI to connect to
+     * @param persistence a `Context` reference (e.g. an `Activity` or `Service` instance)
+     * @param serverUri   the server URI to connect to
      */
-    public Meteor(final PersistenceHandler persistenceHandler, final String serverUri) {
-        this(persistenceHandler, serverUri, null);
+    public Meteor(final Persistence persistence, final String serverUri) {
+        this(persistence, serverUri, null);
     }
 
     /**
@@ -114,27 +118,11 @@ public class Meteor {
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
      * or `wss://example.meteor.com/websocket`
      *
-     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
-     * @param serverUri          the server URI to connect to
-     * @param protocolVersion    the desired DDP protocol version, default version if null given
+     * @param persistence     a `Context` reference (e.g. an `Activity` or `Service` instance)
+     * @param serverUri       the server URI to connect to
+     * @param protocolVersion the desired DDP protocol version, default version if null given
      */
-    public Meteor(final PersistenceHandler persistenceHandler, final String serverUri, final String protocolVersion) {
-        this(persistenceHandler, serverUri, protocolVersion, new WebSocketOptions());
-    }
-
-    /**
-     * Returns a new instance for a client connecting to a server via DDP over websocket
-     * <p/>
-     * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
-     * or `wss://example.meteor.com/websocket`
-     *
-     * @param persistenceHandler a `Context` reference (e.g. an `Activity` or `Service` instance)
-     * @param serverUri          the server URI to connect to
-     * @param protocolVersion    the desired DDP protocol version, default version if null given
-     * @param webSocketOptions   web socket options
-     */
-    public Meteor(final PersistenceHandler persistenceHandler, final String serverUri, String protocolVersion,
-                  WebSocketOptions webSocketOptions) {
+    public Meteor(final Persistence persistence, final String serverUri, String protocolVersion) {
 
         if (protocolVersion == null) {
             protocolVersion = SUPPORTED_DDP_VERSIONS[0];
@@ -142,65 +130,64 @@ public class Meteor {
             throw new RuntimeException("DDP protocol version not supported: " + protocolVersion);
         }
 
-        if (persistenceHandler == null) {
-            throw new RuntimeException("The PersistenceHandler reference may not be null");
+        if (persistence == null) {
+            throw new RuntimeException("The Persistence reference may not be null");
         }
-
+        mHandler = new Handler(Looper.getMainLooper());
         // save the context reference
-        this.persistenceHandler = persistenceHandler;
+        this.persistence = persistence;
 
-        // create a new WebSocket connection for the data transfer
-        mConnection = new WebSocketConnection();
-
-        mWebSocketOptions = webSocketOptions;
-
-        // create a new handler that processes the messages and events received from the WebSocket connection
-        mWebSocketObserver = new WebSocket.WebSocketConnectionObserver() {
-
+        mWebSocketObserver = new WebSocketListener() {
             @Override
-            public void onOpen() {
+            public void onOpen(WebSocket webSocket, Response response) {
                 log("onOpen()");
                 mConnecting = false;
                 mReconnectAttempts = 0;
+                mConnection = webSocket;
                 connect(mSessionID);
             }
 
             @Override
-            public void onClose(WebSocketCloseNotification code, String reason) {
+            public void onFailure(IOException e, Response response) {
+                onException(e);
+            }
+
+            @Override
+            public void onMessage(BufferedSource payload, WebSocket.PayloadType type) throws IOException {
+                try {
+                    handleMessage(payload.readUtf8());
+                } catch (Exception e) {
+                    onException(e);
+                } finally {
+                    payload.close();
+                }
+
+            }
+
+            @Override
+            public void onPong(Buffer payload) {
+
+            }
+
+            @Override
+            public void onClose(int code, String reason) {
                 log("onClose()");
-                final boolean lostConnection = isConnected();
-                mConnecting = false;
-                if (lostConnection) {
+                if (code != CloseCode.NORMAL) {
+
+                    mConnecting = false;
+                    mConnection = null;
                     mReconnectAttempts++;
                     if (mReconnectAttempts <= RECONNECT_ATTEMPTS_MAX) {
                         // try to re-connect automatically
                         openConnection(false);
                     } else {
                         disconnect();
+                        onDisconnect(code, reason);
                     }
                 }
-
-                if (mCallback != null) {
-                    mCallback.onDisconnect(code, reason);
-                }
             }
-
-            @Override
-            public void onTextMessage(String payload) {
-                handleMessage(payload);
-            }
-
-            @Override
-            public void onRawTextMessage(byte[] payload) {
-
-            }
-
-            @Override
-            public void onBinaryMessage(byte[] payload) {
-
-            }
-
         };
+
 
         // create a map that holds the pending Listener instances
         mListeners = new HashMap<String, Listener>();
@@ -214,6 +201,29 @@ public class Meteor {
         mDdpVersion = protocolVersion;
         // count the number of failed attempts to re-connect
         mReconnectAttempts = 0;
+    }
+
+    private void onDisconnect(final int code, final String reason) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onDisconnect(code, reason);
+                }
+            }
+        });
+
+    }
+
+    private void onException(final Exception e) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onException(e);
+                }
+            }
+        });
     }
 
     /**
@@ -262,7 +272,7 @@ public class Meteor {
      * @return whether this client is connected
      */
     public boolean isConnected() {
-        return mConnection != null && mConnection.isConnected();
+        return mConnection != null;
     }
 
     /**
@@ -288,15 +298,14 @@ public class Meteor {
                 return;
             }
         }
-
-        try {
-            mConnecting = true;
-            mConnection.connect(new URI(mServerUri), mWebSocketObserver, mWebSocketOptions);
-        } catch (WebSocketException | URISyntaxException e) {
-            if (mCallback != null) {
-                mCallback.onException(e);
-            }
-        }
+        OkHttpClient client = new OkHttpClient();
+        client.setConnectTimeout(1, TimeUnit.MINUTES);
+        client.setReadTimeout(1, TimeUnit.MINUTES);
+        client.setWriteTimeout(1, TimeUnit.MINUTES);
+        Request request = new Request.Builder()
+                .url(mServerUri)
+                .build();
+        WebSocketCall.create(client, request).enqueue(mWebSocketObserver);
     }
 
     /**
@@ -323,10 +332,11 @@ public class Meteor {
         mSessionID = null;
         mCallback = null;
         mConnecting = false;
+        mHandler.removeCallbacksAndMessages(null);
         try {
-            mConnection.disconnect();
+            mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
         } catch (Exception e) {
-            e.printStackTrace();
+            onException(e);
         }
     }
 
@@ -359,7 +369,11 @@ public class Meteor {
 
         if (isConnected()) {
             log("SEND: " + message);
-            mConnection.sendTextMessage(message);
+            try {
+                mConnection.sendMessage(WebSocket.PayloadType.TEXT, new Buffer().writeUtf8(message));
+            } catch (Exception e) {
+                onException(e);
+            }
         } else {
             log("QUEUE: " + message);
             mQueuedMessages.add(message);
@@ -385,9 +399,7 @@ public class Meteor {
         try {
             return mObjectMapper.writeValueAsString(obj);
         } catch (Exception e) {
-            if (mCallback != null) {
-                mCallback.onException(e);
-            }
+            onException(e);
             return null;
         }
     }
@@ -404,14 +416,10 @@ public class Meteor {
         try {
             data = mObjectMapper.readTree(payload);
         } catch (JsonProcessingException e) {
-            if (mCallback != null) {
-                mCallback.onException(e);
-            }
+            onException(e);
             return;
         } catch (IOException e) {
-            if (mCallback != null) {
-                mCallback.onException(e);
-            }
+            onException(e);
             return;
         }
 
@@ -469,9 +477,8 @@ public class Meteor {
                         newValuesJson = null;
                     }
 
-                    if (mCallback != null) {
-                        mCallback.onDataAdded(collectionName, documentID, newValuesJson);
-                    }
+                    onDataAddedPost(collectionName, documentID, newValuesJson);
+
                 } else if (message.equals(Protocol.Message.CHANGED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
@@ -501,9 +508,9 @@ public class Meteor {
                         removedValuesJson = null;
                     }
 
-                    if (mCallback != null) {
-                        mCallback.onDataChanged(collectionName, documentID, updatedValuesJson, removedValuesJson);
-                    }
+
+                    onDataChangedPost(collectionName, documentID, updatedValuesJson, removedValuesJson);
+
                 } else if (message.equals(Protocol.Message.REMOVED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
@@ -519,9 +526,9 @@ public class Meteor {
                         collectionName = null;
                     }
 
-                    if (mCallback != null) {
-                        mCallback.onDataRemoved(collectionName, documentID);
-                    }
+
+                    onDataRemovedPost(collectionName, documentID);
+
                 } else if (message.equals(Protocol.Message.RESULT)) {
                     // check if we have to process any result data internally
                     if (data.has(Protocol.Field.RESULT)) {
@@ -559,9 +566,9 @@ public class Meteor {
 
                         if (data.has(Protocol.Field.ERROR)) {
                             final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR));
-                            ((ResultListener) listener).onError(error.getError(), error.getReason(), error.getDetails());
+                            onErrorPost(((ResultListener) listener), error.getError(), error.getReason(), error.getDetails());
                         } else {
-                            ((ResultListener) listener).onSuccess(result);
+                            onSuccessPost(((ResultListener) listener), result);
                         }
                     }
                 } else if (message.equals(Protocol.Message.READY)) {
@@ -576,7 +583,7 @@ public class Meteor {
                             if (listener instanceof SubscribeListener) {
                                 mListeners.remove(subscriptionId);
 
-                                ((SubscribeListener) listener).onSuccess();
+                                onSuccessPost(((SubscribeListener) listener));
                             }
                         }
                     }
@@ -595,19 +602,20 @@ public class Meteor {
 
                         if (data.has(Protocol.Field.ERROR)) {
                             final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR));
-                            ((SubscribeListener) listener).onError(error.getError(), error.getReason(), error.getDetails());
+                            onErrorPost(((SubscribeListener) listener), error.getError(), error.getReason(), error.getDetails());
                         } else {
-                            ((SubscribeListener) listener).onError(null, null, null);
+                            onErrorPost(((SubscribeListener) listener), null, null, null);
                         }
                     } else if (listener instanceof UnsubscribeListener) {
                         mListeners.remove(subscriptionId);
 
-                        ((UnsubscribeListener) listener).onSuccess();
+                        onSuccessPost(((UnsubscribeListener) listener));
                     }
                 }
             }
         }
     }
+
 
     /**
      * Returns whether the client is currently logged in as some user
@@ -803,19 +811,20 @@ public class Meteor {
                 saveLoginToken(null);
 
                 if (listener != null) {
-                    listener.onSuccess(result);
+                    Meteor.this.onSuccessPost(listener, result);
                 }
             }
 
             @Override
             public void onError(final String error, final String reason, final String details) {
                 if (listener != null) {
-                    listener.onError(error, reason, details);
+                    Meteor.this.onErrorPost(listener, error, reason, details);
                 }
             }
 
         });
     }
+
 
     /**
      * Registers a new user with the specified username, email address and password
@@ -1053,7 +1062,7 @@ public class Meteor {
      * @param token the login token to save
      */
     private void saveLoginToken(final String token) {
-        persistenceHandler.putString(Preferences.Keys.LOGIN_TOKEN, token);
+        persistence.putString(Preferences.Keys.LOGIN_TOKEN, token);
     }
 
     /**
@@ -1062,7 +1071,7 @@ public class Meteor {
      * @return the last login token or `null`
      */
     private String getLoginToken() {
-        return persistenceHandler.getString(Preferences.Keys.LOGIN_TOKEN);
+        return persistence.getString(Preferences.Keys.LOGIN_TOKEN);
     }
 
 
@@ -1100,9 +1109,7 @@ public class Meteor {
      */
     private void announceSessionReady(final boolean signedInAutomatically) {
         // run the callback that waits for the connection to open
-        if (mCallback != null) {
-            mCallback.onConnect(signedInAutomatically);
-        }
+        onConnectPost(signedInAutomatically);
 
         // try to dispatch queued messages now
         for (String queuedMessage : mQueuedMessages) {
@@ -1110,4 +1117,104 @@ public class Meteor {
         }
     }
 
+    private void onConnectPost(final boolean signedInAutomatically) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onConnect(signedInAutomatically);
+                }
+            }
+        });
+    }
+
+    private void onDataRemovedPost(final String collectionName, final String documentID) {
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onDataRemoved(collectionName, documentID);
+                }
+            }
+        });
+    }
+
+    private void onDataChangedPost(final String collectionName, final String documentID, final String updatedValuesJson, final String removedValuesJson) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onDataChanged(collectionName, documentID, updatedValuesJson, removedValuesJson);
+                }
+            }
+        });
+    }
+
+    private void onDataAddedPost(final String collectionName, final String documentID, final String newValuesJson) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCallback != null) {
+                    mCallback.onDataAdded(collectionName, documentID, newValuesJson);
+                }
+            }
+        });
+    }
+
+    private void onErrorPost(final ResultListener listener, final String error, final String reason, final String details) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
+                    listener.onError(error, reason, details);
+                }
+            }
+        });
+    }
+
+    private void onErrorPost(final SubscribeListener listener, final String error, final String reason, final String details) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
+                    listener.onError(error, reason, details);
+                }
+            }
+        });
+    }
+
+    private void onSuccessPost(final UnsubscribeListener listener) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
+                    listener.onSuccess();
+                }
+            }
+        });
+    }
+
+    private void onSuccessPost(final ResultListener listener, final String result) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
+                    listener.onSuccess(result);
+                }
+            }
+        });
+    }
+
+
+    private void onSuccessPost(final SubscribeListener listener) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
+                    listener.onSuccess();
+                }
+            }
+        });
+    }
 }
