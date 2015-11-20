@@ -81,6 +81,7 @@ public class HomeActivity extends AppCompatActivity
             log(result);
             if ("c".equals(result.getType())) {
                 mRocketMethods.joinRoom(result.getId(), mJoinRoomListener);
+                mRocketMethods.removeUserFromRoom(result.getId(),"cotta.bueno.cesar.julio",mRemoveUserFromRoomListener);
             }
         }
     };
@@ -106,6 +107,7 @@ public class HomeActivity extends AppCompatActivity
             log(result);
         }
     };
+    private ResultListener mRemoveUserFromRoomListener = new LogListener("removeuserfromroom");
     private CreateChannelListener mCreateChannelListener = new CreateChannelListener() {
         @Override
         public void onSuccess(RoomId result) {
@@ -213,7 +215,7 @@ public class HomeActivity extends AppCompatActivity
         @Override
         public void onSuccess(Token result) {
             log(result);
-             testMethods();
+            testMethods();
         }
     };
     private UnsubscribeListener mUnsubscribeListener = new UnsubscribeListener() {
