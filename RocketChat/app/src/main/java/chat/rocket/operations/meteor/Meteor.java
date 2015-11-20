@@ -67,7 +67,7 @@ public class Meteor {
      */
     private static final ObjectMapper mObjectMapper = new ObjectMapper();
 
-    private final Handler mHandler;
+    private final Handler mMainThreadHandler;
     /**
      * The WebSocket connection that will be used for the data transfer
      */
@@ -99,6 +99,7 @@ public class Meteor {
     private String mSessionID;
     private boolean mConnecting;
     private String mLoggedInUserId;
+    private Handler mBackgroundHandler;
 
     /**
      * Returns a new instance for a client connecting to a server via DDP over websocket
@@ -134,7 +135,7 @@ public class Meteor {
         if (persistence == null) {
             throw new RuntimeException("The Persistence reference may not be null");
         }
-        mHandler = new Handler(Looper.getMainLooper());
+        mMainThreadHandler = new Handler(Looper.getMainLooper());
         // save the context reference
         this.persistence = persistence;
 
@@ -150,7 +151,7 @@ public class Meteor {
 
             @Override
             public void onFailure(IOException e, Response response) {
-                onException(e);
+                onExceptionPost(e);
             }
 
             @Override
@@ -175,8 +176,7 @@ public class Meteor {
                         // try to re-connect automatically
                         openConnection(false);
                     } else {
-                        disconnect();
-                        onDisconnect(code, reason);
+                        disconnect(code, reason);
                     }
                 }
             }
@@ -197,8 +197,8 @@ public class Meteor {
         mReconnectAttempts = 0;
     }
 
-    private void onDisconnect(final int code, final String reason) {
-        mHandler.post(new Runnable() {
+    private void onDisconnectPost(final int code, final String reason) {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -209,8 +209,8 @@ public class Meteor {
 
     }
 
-    private void onException(final Exception e) {
-        mHandler.post(new Runnable() {
+    private void onExceptionPost(final Exception e) {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -286,12 +286,27 @@ public class Meteor {
      * @param isReconnect whether this is a re-connect attempt or not
      */
     public void openConnection(final boolean isReconnect) {
+
         if (isReconnect) {
             if (isConnected()) {
                 connect(mSessionID);
                 return;
             }
         }
+        if (mBackgroundHandler != null) {
+            destroyBackgroundHandler();
+        }
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                Looper.prepare();
+                mBackgroundHandler = new Handler(Looper.myLooper());
+                Looper.loop();
+            }
+        }.start();
+
+
         OkHttpClient client = new OkHttpClient();
         client.setConnectTimeout(1, TimeUnit.MINUTES);
         client.setReadTimeout(1, TimeUnit.MINUTES);
@@ -321,17 +336,22 @@ public class Meteor {
     /**
      * Disconnect the client from the server
      */
-    public void disconnect() {
+    public void disconnect(int code, String reason) {
         mListeners.clear();
         mSessionID = null;
-        mCallback = null;
         mConnecting = false;
-        mHandler.removeCallbacksAndMessages(null);
-        try {
-            mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
-        } catch (Exception e) {
-            onException(e);
-        }
+        onDisconnectPost(code, reason);
+        closePost();
+    }
+
+    private void destroyBackgroundHandler() {
+        mBackgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Looper.myLooper().quit();
+            }
+        });
+        mBackgroundHandler = null;
     }
 
     /**
@@ -363,14 +383,8 @@ public class Meteor {
 
         if (isConnected()) {
             log("SEND: " + message);
-            try {
-                synchronized (mConnection) {
-                    RequestBody request = RequestBody.create(WebSocket.TEXT, message);
-                    mConnection.sendMessage(request);
-                }
-            } catch (Exception e) {
-                onException(e);
-            }
+            sendMessagePost(message);
+
         } else {
             log("QUEUE: " + message);
             mQueuedMessages.add(message);
@@ -396,7 +410,7 @@ public class Meteor {
         try {
             return mObjectMapper.writeValueAsString(obj);
         } catch (Exception e) {
-            onException(e);
+            onExceptionPost(e);
             return null;
         }
     }
@@ -413,10 +427,10 @@ public class Meteor {
         try {
             data = mObjectMapper.readTree(payload);
         } catch (JsonProcessingException e) {
-            onException(e);
+            onExceptionPost(e);
             return;
         } catch (IOException e) {
-            onException(e);
+            onExceptionPost(e);
             return;
         }
 
@@ -1115,7 +1129,7 @@ public class Meteor {
     }
 
     private void onConnectPost(final boolean signedInAutomatically) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -1127,7 +1141,7 @@ public class Meteor {
 
     private void onDataRemovedPost(final String collectionName, final String documentID) {
 
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -1138,7 +1152,7 @@ public class Meteor {
     }
 
     private void onDataChangedPost(final String collectionName, final String documentID, final String updatedValuesJson, final String removedValuesJson) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -1149,7 +1163,7 @@ public class Meteor {
     }
 
     private void onDataAddedPost(final String collectionName, final String documentID, final String newValuesJson) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -1160,7 +1174,7 @@ public class Meteor {
     }
 
     private void onErrorPost(final ResultListener listener, final String error, final String reason, final String details) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
@@ -1171,7 +1185,7 @@ public class Meteor {
     }
 
     private void onErrorPost(final SubscribeListener listener, final String error, final String reason, final String details) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
@@ -1182,7 +1196,7 @@ public class Meteor {
     }
 
     private void onSuccessPost(final UnsubscribeListener listener) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
@@ -1193,7 +1207,7 @@ public class Meteor {
     }
 
     private void onSuccessPost(final ResultListener listener, final String result) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
@@ -1205,7 +1219,7 @@ public class Meteor {
 
 
     private void onSuccessPost(final SubscribeListener listener) {
-        mHandler.post(new Runnable() {
+        mMainThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
@@ -1214,4 +1228,43 @@ public class Meteor {
             }
         });
     }
+
+    private void sendMessagePost(final String message) {
+        if (mBackgroundHandler == null) {
+            return;
+        }
+
+        mBackgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RequestBody request = RequestBody.create(WebSocket.TEXT, message);
+                    mConnection.sendMessage(request);
+                } catch (Exception e) {
+                    onExceptionPost(e);
+                }
+            }
+        });
+    }
+
+    private void closePost() {
+        if (mBackgroundHandler == null) {
+            return;
+        }
+        mBackgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
+                    mConnection = null;
+                } catch (Exception e) {
+                    onExceptionPost(e);
+                } finally {
+                    destroyBackgroundHandler();
+                }
+            }
+        });
+
+    }
+
 }

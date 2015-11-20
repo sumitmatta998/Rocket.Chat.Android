@@ -28,6 +28,7 @@ import chat.rocket.models.RoomId;
 import chat.rocket.models.Token;
 import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.Subscription;
+import chat.rocket.operations.meteor.CloseCode;
 import chat.rocket.operations.meteor.MeteorCallback;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.ResultListener;
@@ -212,7 +213,7 @@ public class HomeActivity extends AppCompatActivity
         @Override
         public void onSuccess(Token result) {
             log(result);
-           // testMethods();
+             testMethods();
         }
     };
     private UnsubscribeListener mUnsubscribeListener = new UnsubscribeListener() {
@@ -265,22 +266,24 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         mMeteor = MeteorSingleton.getInstance();
         mMeteor.setCallback(this);
+
         mRocketMethods = new RocketMethods(mMeteor);
         mRocketSubscriptions = new RocketSubscriptions(mMeteor);
 
         if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
             mMeteor.reconnect();
         } else {
-            //testMethods();
+            testMethods();
         }
     }
 
     @Override
     public void onConnect(final boolean signedInAutomatically) {
         if (signedInAutomatically) {
-
+            testMethods();
         } else {
-            mRocketMethods.login("juliocbcotta+1@gmail.com", "google", mLoginListener);
+            //mRocketMethods.login("julio-1", "asdasdqw", mLoginListener);
+            mRocketMethods.login("julio.cesar.bueno.cotta", "google", mLoginListener);
         }
     }
 
@@ -338,7 +341,7 @@ public class HomeActivity extends AppCompatActivity
         super.onDestroy();
         mMeteor.unsetCallback(this);
         if (isFinishing()) {
-            mMeteor.disconnect();
+            mMeteor.disconnect(CloseCode.NORMAL, "bye");
         }
     }
 
