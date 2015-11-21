@@ -4,13 +4,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/FacebookButton"
-        android:layout_width="wrap_content"
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="30dp"
-        android:layout_marginTop="30dp" />
+        android:layout_margin="16dp">
+
+        <EditText
+            android:id="@+id/NameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/name"
+            android:inputType="textCapWords"
+            android:singleLine="true" />
+    </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
@@ -18,13 +24,12 @@
         android:layout_margin="16dp">
 
         <EditText
-            android:id="@+id/LoginEditText"
+            android:id="@+id/EmailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/email_or_username"
-            android:singleLine="true"
             android:inputType="textEmailAddress"
-            android:text="cotta.bueno.cesar.julio" />
+            android:hint="@string/email"
+            android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
@@ -38,34 +43,28 @@
             android:layout_height="wrap_content"
             android:hint="@string/password"
             android:inputType="textPassword"
-            android:singleLine="true"
-            android:text="google" />
+            android:singleLine="true" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp">
+
+        <EditText
+            android:id="@+id/PasswordConfirmationEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/confirm_your_password"
+            android:inputType="textPassword"
+            android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 
     <Button
-        android:id="@+id/LoginButton"
+        android:id="@+id/RegistrationButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/login" />
+        android:text="@string/submit" />
 
-    <TextView
-        android:id="@+id/ForgotPasswordTextview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:paddingLeft="12dp"
-        android:paddingRight="12dp"
-        android:paddingTop="12dp"
-        android:text="@string/forgot_your_password" />
-
-    <TextView
-        android:id="@+id/RegistrationTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:paddingLeft="12dp"
-        android:paddingRight="12dp"
-        android:paddingTop="12dp"
-        android:text="@string/register_a_new_account" />
 </LinearLayout>

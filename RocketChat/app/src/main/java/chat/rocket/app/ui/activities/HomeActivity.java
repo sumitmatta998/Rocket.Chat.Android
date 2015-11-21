@@ -63,21 +63,21 @@ public class HomeActivity extends AppCompatActivity
     private RocketSubscriptions mRocketSubscriptions;
     private AddUserToRoomListener mAddUserToRoomListener = new AddUserToRoomListener() {
         @Override
-        public void onSuccess(Boolean result) {
+        public void onResult(Boolean result) {
             log("added user to room?" + result);
         }
     };
 
     private JoinRoomListener mJoinRoomListener = new JoinRoomListener() {
         @Override
-        public void onSuccess(Void result) {
+        public void onResult(Void result) {
             log(result);
         }
     };
 
     private CanAccessRoomListener mCanAccessRoomListener = new CanAccessRoomListener() {
         @Override
-        public void onSuccess(Channel result) {
+        public void onResult(Channel result) {
             log(result);
             if ("c".equals(result.getType())) {
                 mRocketMethods.joinRoom(result.getId(), mJoinRoomListener);
@@ -88,14 +88,14 @@ public class HomeActivity extends AppCompatActivity
 
     private UpdateMessageListener mUpdateMessageListener = new UpdateMessageListener() {
         @Override
-        public void onSuccess(Void result) {
+        public void onResult(Void result) {
             log(result);
         }
     };
 
     private SendMessageListener mSendMessageListener = new SendMessageListener() {
         @Override
-        public void onSuccess(Message result) {
+        public void onResult(Message result) {
             log(result);
             mRocketMethods.updateMessage(result.getId(), result.getRid(), "Hello mother fucker", mUpdateMessageListener);
         }
@@ -103,14 +103,14 @@ public class HomeActivity extends AppCompatActivity
 
     private SaveRoomNameListener mSaveRoomNameListener = new SaveRoomNameListener() {
         @Override
-        public void onSuccess(String result) {
+        public void onResult(String result) {
             log(result);
         }
     };
     private ResultListener mRemoveUserFromRoomListener = new LogListener("removeuserfromroom");
     private CreateChannelListener mCreateChannelListener = new CreateChannelListener() {
         @Override
-        public void onSuccess(RoomId result) {
+        public void onResult(RoomId result) {
             log(result);
             mRocketMethods.addUserToRoom(result.getRid(), "cotta.bueno.cesar.julio", mAddUserToRoomListener);
             mRocketMethods.canAccessRoom(result.getRid(), mMeteor.getUserId(), mCanAccessRoomListener);
@@ -120,7 +120,7 @@ public class HomeActivity extends AppCompatActivity
 
     private ArchiveRoomListener mArchiveRoomListener = new ArchiveRoomListener() {
         @Override
-        public void onSuccess(List<Integer> result) {
+        public void onResult(List<Integer> result) {
             if (result.size() > 0) {
                 log("archived one room, I guess");
             }
@@ -129,36 +129,36 @@ public class HomeActivity extends AppCompatActivity
 
     private EraseRoomListener mEraseRoomListener = new EraseRoomListener() {
         @Override
-        public void onSuccess(Integer result) {
+        public void onResult(Integer result) {
             log(result);
         }
     };
     private LeaveRoomListener mLeaveRoomListener = new LeaveRoomListener() {
         @Override
-        public void onSuccess(Void result) {
+        public void onResult(Void result) {
             log(result);
         }
     };
     private CreatePrivateGroupListener mCreatePrivateGroupListener = new CreatePrivateGroupListener() {
         @Override
-        public void onSuccess(RoomId result) {
+        public void onResult(RoomId result) {
             log(result);
 
         }
     };
     private DeleteMessageListener mDeleteMessageListener = new DeleteMessageListener() {
         @Override
-        public void onSuccess(Void result) {
+        public void onResult(Void result) {
             log(result);
         }
     };
     private CreateDirectMessageListener mCreateDirectMessageListener = new CreateDirectMessageListener() {
         @Override
-        public void onSuccess(RoomId result) {
+        public void onResult(RoomId result) {
             log(result);
             mRocketMethods.sendMessage(result.getRid(), "baka baka baka", new SendMessageListener() {
                 @Override
-                public void onSuccess(Message result) {
+                public void onResult(Message result) {
                     log(result);
                     mRocketMethods.deleteMessage(result.getId(), mDeleteMessageListener);
                 }
@@ -168,20 +168,20 @@ public class HomeActivity extends AppCompatActivity
     private ResultListener mLocaleListener = new LogListener("locale");
     private HideRoomListener mHideRoomListener = new HideRoomListener() {
         @Override
-        public void onSuccess(Integer result) {
+        public void onResult(Integer result) {
             log(result);
             mRocketMethods.loadLocale("pt", mLocaleListener);
         }
     };
     private LoadHistoryListener mLoadHistoryListener = new LoadHistoryListener() {
         @Override
-        public void onSuccess(Messages result) {
+        public void onResult(Messages result) {
             log(result);
         }
     };
     private ChannelsListListener mChannelsListListener = new ChannelsListListener() {
         @Override
-        public void onSuccess(Channels result) {
+        public void onResult(Channels result) {
             log(result);
             for (Channel c : result.getChannels()) {
                 if (c.getName().contains("alice")) {
@@ -211,9 +211,9 @@ public class HomeActivity extends AppCompatActivity
         }
     };
 
-    private ResultListener mLoginListener = new LoginListener() {
+    private LoginListener mLoginListener = new LoginListener() {
         @Override
-        public void onSuccess(Token result) {
+        public void onResult(Token result) {
             log(result);
             testMethods();
         }
@@ -284,8 +284,8 @@ public class HomeActivity extends AppCompatActivity
         if (signedInAutomatically) {
             testMethods();
         } else {
-            //mRocketMethods.login("julio-1", "asdasdqw", mLoginListener);
-            mRocketMethods.login("julio.cesar.bueno.cotta", "google", mLoginListener);
+            //mRocketMethods.loginWithUsername("julio-1", "asdasdqw", mLoginListener);
+            mRocketMethods.loginWithUsername("julio.cesar.bueno.cotta", "google", mLoginListener);
         }
     }
 

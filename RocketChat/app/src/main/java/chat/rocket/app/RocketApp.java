@@ -37,7 +37,6 @@ public class RocketApp extends Application implements Persistence {
 
     @Override
     public String getString(String key) {
-
         return PreferenceManager.getDefaultSharedPreferences(this).getString(key, null);
     }
 

@@ -19,6 +19,7 @@ import chat.rocket.operations.methods.listeners.HideRoomListener;
 import chat.rocket.operations.methods.listeners.JoinRoomListener;
 import chat.rocket.operations.methods.listeners.LeaveRoomListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
+import chat.rocket.operations.methods.listeners.LoginListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
 import chat.rocket.operations.methods.listeners.UpdateMessageListener;
@@ -124,8 +125,12 @@ public class RocketMethods {
         mMeteor.call("loadMissedMessages", new Object[]{rid, start}, listener);
     }
 
-    public void login(String username, String pass, ResultListener listener) {
+    public void loginWithUsername(String username, String pass, LoginListener listener) {
         mMeteor.loginWithUsername(username, pass, listener);
+    }
+
+    public void loginWithEmail(String email, String pass, LoginListener listener) {
+        mMeteor.loginWithEmail(email, pass, listener);
     }
 
     public void logoutCleanUp(ResultListener listener) {
@@ -153,7 +158,7 @@ public class RocketMethods {
         data.put("name", name);
         data.put("email", email);
         data.put("pass", pass);
-        mMeteor.call("deleteMessage", new Object[]{data}, listener);
+        mMeteor.call("registerUser", new Object[]{data}, listener);
     }
 
     public void removeUserFromRoom(String rid, String username, ResultListener listener) {

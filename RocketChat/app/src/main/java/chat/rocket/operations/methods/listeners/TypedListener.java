@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
 abstract class TypedListener<T> extends LogListener {
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public abstract void onSuccess(T result);
+    public abstract void onResult(T result);
 
     @Override
     public void onSuccess(String result) {
@@ -26,11 +26,11 @@ abstract class TypedListener<T> extends LogListener {
 
         try {
             if (listTypeArgs[0] instanceof Class) {
-                onSuccess(mapper.readValue(result, (Class<T>) listTypeArgs[0]));
+                onResult(mapper.readValue(result, (Class<T>) listTypeArgs[0]));
             } else {
                 TypeReference<T> type = new TypeReference<T>() {
                 };
-                onSuccess((T) mapper.readValue(result, type));
+                onResult((T) mapper.readValue(result, type));
             }
 
         } catch (Exception e) {
