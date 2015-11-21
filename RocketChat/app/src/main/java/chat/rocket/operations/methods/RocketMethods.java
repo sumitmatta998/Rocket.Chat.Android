@@ -15,11 +15,13 @@ import chat.rocket.operations.methods.listeners.CreateDirectMessageListener;
 import chat.rocket.operations.methods.listeners.CreatePrivateGroupListener;
 import chat.rocket.operations.methods.listeners.DeleteMessageListener;
 import chat.rocket.operations.methods.listeners.EraseRoomListener;
+import chat.rocket.operations.methods.listeners.GetTotalChannelsListener;
 import chat.rocket.operations.methods.listeners.HideRoomListener;
 import chat.rocket.operations.methods.listeners.JoinRoomListener;
 import chat.rocket.operations.methods.listeners.LeaveRoomListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
+import chat.rocket.operations.methods.listeners.OpenRoomListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
 import chat.rocket.operations.methods.listeners.UpdateMessageListener;
@@ -91,7 +93,7 @@ public class RocketMethods {
         mMeteor.call("getRoomIdByNameOrId", new Object[]{rid}, listener);
     }
 
-    public void getTotalChannels(ResultListener listener) {
+    public void getTotalChannels(GetTotalChannelsListener listener) {
         mMeteor.call("getTotalChannels", listener);
     }
 
@@ -145,7 +147,7 @@ public class RocketMethods {
         //TODO: How does it work???
     }
 
-    public void openRoom(String rid, ResultListener listener) {
+    public void openRoom(String rid, OpenRoomListener listener) {
         mMeteor.call("openRoom", new Object[]{rid}, listener);
     }
 

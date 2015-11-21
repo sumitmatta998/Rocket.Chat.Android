@@ -9,7 +9,6 @@ import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.LoginActivity;
 
-;
 
 /**
  * Created by julio on 20/11/15.

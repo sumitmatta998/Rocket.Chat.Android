@@ -22,9 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/email_or_username"
-            android:singleLine="true"
             android:inputType="textEmailAddress"
-            android:text="cotta.bueno.cesar.julio" />
+            android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
@@ -38,8 +37,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/password"
             android:inputType="textPassword"
-            android:singleLine="true"
-            android:text="google" />
+            android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 
     <Button

@@ -20,7 +20,7 @@ public class Channel {
     private List<String> usernames;
     private long msgs;
     @JsonProperty("u")
-    private Username username;
+    private UsernameId usernameId;
     @JsonProperty("default")
     private boolean defaultRoom;
     private TimeStamp lm;
@@ -82,12 +82,12 @@ public class Channel {
         this.id = id;
     }
 
-    public Username getUsername() {
-        return username;
+    public UsernameId getUsernameId() {
+        return usernameId;
     }
 
-    public void setUsername(Username username) {
-        this.username = username;
+    public void setUsernameId(UsernameId usernameId) {
+        this.usernameId = usernameId;
     }
 
     public TimeStamp getLm() {
