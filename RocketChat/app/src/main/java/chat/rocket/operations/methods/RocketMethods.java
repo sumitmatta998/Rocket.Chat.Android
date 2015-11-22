@@ -178,7 +178,7 @@ public class RocketMethods {
     }
 
     public void resetAvatar(ResultListener listener) {
-        //TODO: How does it work???
+        mMeteor.call("resetAvatar", listener);
     }
 
     public void saveRoomName(String rid, String name, SaveRoomNameListener listener) {

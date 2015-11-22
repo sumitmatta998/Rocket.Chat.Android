@@ -21,6 +21,7 @@ import chat.rocket.models.Message;
 import chat.rocket.models.Messages;
 import chat.rocket.operations.meteor.MessageSearchResults;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
+import chat.rocket.operations.methods.listeners.LogListener;
 import chat.rocket.operations.methods.listeners.MessageSearchListener;
 
 public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {

@@ -26,6 +26,7 @@ public class ForgotPasswordActivity extends BaseActivity {
     }
 
     private void resetPassword(String email) {
+
         mRocketMethods.sendForgotPasswordEmail(email, new SendForgotPasswordEmailListener() {
             @Override
             public void onResult(Boolean result) {
@@ -33,6 +34,7 @@ public class ForgotPasswordActivity extends BaseActivity {
                 finish();
             }
         });
+
 
     }
 }
