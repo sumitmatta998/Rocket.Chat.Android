@@ -2,13 +2,13 @@ package chat.rocket.operations.meteor;
 
 /**
  * Copyright 2014 www.delight.im <info@delight.im>
- * <p/>
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,7 @@ package chat.rocket.operations.meteor;
  */
 
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
 
 /**
  * Constants used in the Distributed Data Protocol (DDP)
@@ -88,16 +88,13 @@ public class Protocol {
             mDetails = details;
         }
 
-        public static Error fromJson(final JsonNode json) {
+        public static Error fromJson(final JsonObject json) {
             final String error;
             if (json.has(Protocol.Field.ERROR)) {
-                final JsonNode errorJson = json.get(Protocol.Field.ERROR);
-                if (errorJson.isTextual()) {
-                    error = errorJson.asText();
-                } else if (errorJson.isNumber()) {
-                    error = errorJson.asText();
-                } else {
-                    throw new RuntimeException("Unexpected data type of error.error json:" + json);
+                try {
+                    error = json.get(Field.ERROR).toString();
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected data type of error.error json:" + json, e);
                 }
             } else {
                 error = null;
@@ -105,14 +102,22 @@ public class Protocol {
 
             final String reason;
             if (json.has(Protocol.Field.REASON)) {
-                reason = json.get(Protocol.Field.REASON).asText();
+                try {
+                    reason = json.get(Field.REASON).toString();
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected data type of error.reason json:" + json, e);
+                }
             } else {
                 reason = null;
             }
 
             final String details;
             if (json.has(Protocol.Field.DETAILS)) {
-                details = json.get(Protocol.Field.DETAILS).asText();
+                try {
+                    details = json.get(Field.DETAILS).toString();
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected data type of error.details json:" + json, e);
+                }
             } else {
                 details = null;
             }

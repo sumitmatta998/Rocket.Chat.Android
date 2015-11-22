@@ -16,4 +16,6 @@
     <string name="submit">Submit</string>
     <string name="registration_activity_title">Registration</string>
     <string name="main_activity_title">Dashboard</string>
+    <string name="forgot_password_activity_title">Password recovery</string>
+    <string name="we_sent_you_an_email_check_it">We sent you an Email, check it!</string>
 </resources>

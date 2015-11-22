@@ -1,7 +1,7 @@
 package chat.rocket.models;
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
  * Created by julio on 18/11/15.
  */
 public class Channels {
-    @JsonProperty("channels")
+    @SerializedName("channels")
     private List<Channel> channels;
 
     public List<Channel> getChannels() {

@@ -1,6 +1,7 @@
 package chat.rocket.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -8,14 +9,14 @@ import java.util.List;
  * Created by julio on 19/11/15.
  */
 public class Message {
-    @JsonProperty("_id")
+    @SerializedName("_id")
     private String id;
     private String msg;
     private String rid;
     private TimeStamp ts;
-    @JsonProperty("t")
+    @SerializedName("t")
     private String type;
-    @JsonProperty("u")
+    @SerializedName("u")
     private UsernameId usernameId;
     private FileId file;
     private List<UrlParts> urls;
@@ -23,9 +24,10 @@ public class Message {
     private EditedBy editedBy;
     private double score;
 
-    public String toString(){
-        return "id:"+id+", msg:"+msg+"\nby:"+usernameId.getUsername();
+    public String toString() {
+        return "id:" + id + ", msg:" + msg + "\nby:" + usernameId.getUsername();
     }
+
     public String getType() {
         return type;
     }

@@ -1,12 +1,12 @@
 package chat.rocket.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by julio on 21/11/15.
  */
 public class EditedBy {
-    @JsonProperty("_id")
+    @SerializedName("_id")
     private String id;
     private String username;
 

@@ -1,6 +1,7 @@
 package chat.rocket.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -8,20 +9,20 @@ import java.util.List;
  * Created by julio on 18/11/15.
  */
 public class Channel {
-    @JsonProperty("_id")
+    @SerializedName("_id")
     private String id;
-    @JsonProperty("ts")
+    @SerializedName("ts")
     private TimeStamp ts;
-    @JsonProperty("t")
+    @SerializedName("t")
     private String type;
-    @JsonProperty("name")
+    @SerializedName("name")
     private String name;
-    @JsonProperty("usernames")
+    @SerializedName("usernames")
     private List<String> usernames;
     private long msgs;
-    @JsonProperty("u")
+    @SerializedName("u")
     private UsernameId usernameId;
-    @JsonProperty("default")
+    @SerializedName("default")
     private boolean defaultRoom;
     private TimeStamp lm;
     private boolean archived;

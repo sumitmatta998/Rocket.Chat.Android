@@ -26,6 +26,7 @@ import java.util.List;
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.MainActivity;
+import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
 import chat.rocket.models.Token;
 import chat.rocket.operations.methods.listeners.LoginListener;
@@ -81,9 +82,17 @@ public class LoginActivity extends BaseActivity {
         findViewById(R.id.LoginButton).setOnClickListener(v -> {
             executeLogin(loginEditText.getText().toString().trim(), passwordEditText.getText().toString().trim());
         });
+        findViewById(R.id.ForgotPasswordTextview).setOnClickListener(v1 -> {
+            openForgotPassword();
+        });
         findViewById(R.id.RegistrationTextView).setOnClickListener(v -> {
             openRegistrationForResult();
         });
+    }
+
+    private void openForgotPassword() {
+        Intent intent= new Intent(this, ForgotPasswordActivity.class);
+        startActivity(intent);
     }
 
     private void openRegistrationForResult() {
@@ -128,7 +137,7 @@ public class LoginActivity extends BaseActivity {
                 response -> {
                     if (response != null && response.getError() == null) {
                         try {
-                            Log.d("testeeee", response.toString());
+                            //TODO: extract needed info and forward to server
                             String email = response.getJSONObject().get("email").toString();
                             String birthday = response.getJSONObject().get("birthday").toString();
                             Toast.makeText(LoginActivity.this, email + ", " + birthday, Toast.LENGTH_LONG).show();

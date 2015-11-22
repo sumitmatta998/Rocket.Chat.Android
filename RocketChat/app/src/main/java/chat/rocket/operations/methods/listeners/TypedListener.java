@@ -1,7 +1,8 @@
 package chat.rocket.operations.methods.listeners;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONObject;
 
@@ -12,7 +13,7 @@ import java.lang.reflect.Type;
  * Created by julio on 19/11/15.
  */
 abstract class TypedListener<T> extends LogListener {
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static Gson mapper = new Gson();
 
     public abstract void onResult(T result);
 
@@ -26,11 +27,11 @@ abstract class TypedListener<T> extends LogListener {
 
         try {
             if (listTypeArgs[0] instanceof Class) {
-                onResult(mapper.readValue(result, (Class<T>) listTypeArgs[0]));
+                onResult(mapper.fromJson(result, (Class<T>) listTypeArgs[0]));
             } else {
-                TypeReference<T> type = new TypeReference<T>() {
-                };
-                onResult((T) mapper.readValue(result, type));
+                Type listType = new TypeToken<T>() {
+                }.getType();
+                onResult((T) mapper.fromJson(result, listType));
             }
 
         } catch (Exception e) {

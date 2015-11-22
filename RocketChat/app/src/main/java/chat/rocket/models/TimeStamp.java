@@ -1,13 +1,13 @@
 package chat.rocket.models;
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by julio on 18/11/15.
  */
 public class TimeStamp {
-    @JsonProperty("$date")
+    @SerializedName("$date")
     private long date;
 
     public long getDate() {

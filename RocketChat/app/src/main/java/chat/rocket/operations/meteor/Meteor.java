@@ -2,13 +2,13 @@ package chat.rocket.operations.meteor;
 
 /**
  * Copyright 2014 www.delight.im <info@delight.im>
- * <p/>
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
@@ -65,7 +66,7 @@ public class Meteor {
     /**
      * Instance of Jackson library's ObjectMapper that converts between JSON and Java objects (POJOs)
      */
-    private static final ObjectMapper mObjectMapper = new ObjectMapper();
+    private static final Gson mObjectMapper = new Gson();
 
     private final Handler mMainThreadHandler;
     /**
@@ -103,7 +104,7 @@ public class Meteor {
 
     /**
      * Returns a new instance for a client connecting to a server via DDP over websocket
-     * <p/>
+     * <p>
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
      * or `wss://example.meteor.com/websocket`
      *
@@ -116,7 +117,7 @@ public class Meteor {
 
     /**
      * Returns a new instance for a client connecting to a server via DDP over websocket
-     * <p/>
+     * <p>
      * The server URI should usually be in the form of `ws://example.meteor.com/websocket`
      * or `wss://example.meteor.com/websocket`
      *
@@ -226,7 +227,7 @@ public class Meteor {
      * @param result the JSON result
      * @return whether the result is from a login attempt (`true`) or not (`false`)
      */
-    private static boolean isLoginResult(final JsonNode result) {
+    private static boolean isLoginResult(final JsonObject result) {
         return result.has(Protocol.Field.TOKEN) && result.has(Protocol.Field.ID);
     }
 
@@ -408,7 +409,7 @@ public class Meteor {
      */
     private String toJson(Object obj) {
         try {
-            return mObjectMapper.writeValueAsString(obj);
+            return mObjectMapper.toJson(obj);
         } catch (Exception e) {
             onExceptionPost(e);
             return null;
@@ -423,31 +424,26 @@ public class Meteor {
     private void handleMessage(final String payload) {
         log("RECEIVE: " + payload);
 
-        JsonNode data;
+        JsonObject data = null;
         try {
-            data = mObjectMapper.readTree(payload);
-        } catch (JsonProcessingException e) {
+            data = new JsonParser().parse(payload).getAsJsonObject();
+        } catch (Exception e) {
             onExceptionPost(e);
-            return;
-        } catch (IOException e) {
-            onExceptionPost(e);
-            return;
         }
-
         if (data != null) {
             if (data.has(Protocol.Field.MESSAGE)) {
-                final String message = data.get(Protocol.Field.MESSAGE).asText();
+                final String message = data.get(Protocol.Field.MESSAGE).getAsString();
 
                 if (message.equals(Protocol.Message.CONNECTED)) {
                     if (data.has(Protocol.Field.SESSION)) {
-                        mSessionID = data.get(Protocol.Field.SESSION).asText();
+                        mSessionID = data.get(Protocol.Field.SESSION).getAsString();
                     }
 
                     // initialize the new session
                     initSession();
                 } else if (message.equals(Protocol.Message.FAILED)) {
                     if (data.has(Protocol.Field.VERSION)) {
-                        final String desiredVersion = data.get(Protocol.Field.VERSION).asText();
+                        final String desiredVersion = data.get(Protocol.Field.VERSION).getAsString();
 
                         if (isVersionSupported(desiredVersion)) {
                             mDdpVersion = desiredVersion;
@@ -460,7 +456,7 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.PING)) {
                     final String id;
                     if (data.has(Protocol.Field.ID)) {
-                        id = data.get(Protocol.Field.ID).asText();
+                        id = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         id = null;
                     }
@@ -469,14 +465,14 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.ADDED) || message.equals(Protocol.Message.ADDED_BEFORE)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).asText();
+                        documentID = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
+                        collectionName = data.get(Protocol.Field.COLLECTION).getAsString();
                     } else {
                         collectionName = null;
                     }
@@ -493,14 +489,14 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.CHANGED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).asText();
+                        documentID = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
+                        collectionName = data.get(Protocol.Field.COLLECTION).getAsString();
                     } else {
                         collectionName = null;
                     }
@@ -525,14 +521,14 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.REMOVED)) {
                     final String documentID;
                     if (data.has(Protocol.Field.ID)) {
-                        documentID = data.get(Protocol.Field.ID).asText();
+                        documentID = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         documentID = null;
                     }
 
                     final String collectionName;
                     if (data.has(Protocol.Field.COLLECTION)) {
-                        collectionName = data.get(Protocol.Field.COLLECTION).asText();
+                        collectionName = data.get(Protocol.Field.COLLECTION).getAsString();
                     } else {
                         collectionName = null;
                     }
@@ -543,22 +539,25 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.RESULT)) {
                     // check if we have to process any result data internally
                     if (data.has(Protocol.Field.RESULT)) {
-                        final JsonNode resultData = data.get(Protocol.Field.RESULT);
+                        JsonElement resultData = data.get(Protocol.Field.RESULT);
 
                         // if the result is from a previous login attempt
-                        if (isLoginResult(resultData)) {
-                            // extract the login token for subsequent automatic re-login
-                            final String loginToken = resultData.get(Protocol.Field.TOKEN).asText();
-                            saveLoginToken(loginToken);
+                        if (resultData.isJsonObject()) {
+                            JsonObject result = resultData.getAsJsonObject();
+                            if (isLoginResult(result)) {
+                                // extract the login token for subsequent automatic re-login
+                                final String loginToken = result.get(Protocol.Field.TOKEN).getAsString();
+                                saveLoginToken(loginToken);
 
-                            // extract the user's ID
-                            mLoggedInUserId = resultData.get(Protocol.Field.ID).asText();
+                                // extract the user's ID
+                                mLoggedInUserId = result.get(Protocol.Field.ID).getAsString();
+                            }
                         }
                     }
 
                     final String id;
                     if (data.has(Protocol.Field.ID)) {
-                        id = data.get(Protocol.Field.ID).asText();
+                        id = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         id = null;
                     }
@@ -576,7 +575,7 @@ public class Meteor {
                         }
 
                         if (data.has(Protocol.Field.ERROR)) {
-                            final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR));
+                            final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR).getAsJsonObject());
                             onErrorPost(((ResultListener) listener), error.getError(), error.getReason(), error.getDetails());
                         } else {
                             onSuccessPost(((ResultListener) listener), result);
@@ -584,10 +583,10 @@ public class Meteor {
                     }
                 } else if (message.equals(Protocol.Message.READY)) {
                     if (data.has(Protocol.Field.SUBS)) {
-                        final Iterator<JsonNode> elements = data.get(Protocol.Field.SUBS).elements();
+                        Iterator<JsonElement> elements = data.get(Protocol.Field.SUBS).getAsJsonArray().iterator();
                         String subscriptionId;
                         while (elements.hasNext()) {
-                            subscriptionId = elements.next().asText();
+                            subscriptionId = elements.next().getAsString();
 
                             final Listener listener = mListeners.get(subscriptionId);
 
@@ -601,7 +600,7 @@ public class Meteor {
                 } else if (message.equals(Protocol.Message.NOSUB)) {
                     final String subscriptionId;
                     if (data.has(Protocol.Field.ID)) {
-                        subscriptionId = data.get(Protocol.Field.ID).asText();
+                        subscriptionId = data.get(Protocol.Field.ID).getAsString();
                     } else {
                         subscriptionId = null;
                     }
@@ -612,7 +611,7 @@ public class Meteor {
                         mListeners.remove(subscriptionId);
 
                         if (data.has(Protocol.Field.ERROR)) {
-                            final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR));
+                            final Protocol.Error error = Protocol.Error.fromJson(data.get(Protocol.Field.ERROR).getAsJsonObject());
                             onErrorPost(((SubscribeListener) listener), error.getError(), error.getReason(), error.getDetails());
                         } else {
                             onErrorPost(((SubscribeListener) listener), null, null, null);
@@ -742,7 +741,7 @@ public class Meteor {
 
     /**
      * Sign in the user with the given username and password
-     * <p/>
+     * <p>
      * Please note that this requires the `accounts-password` package
      *
      * @param username the username to sign in with
@@ -755,7 +754,7 @@ public class Meteor {
 
     /**
      * Sign in the user with the given email address and password
-     * <p/>
+     * <p>
      * Please note that this requires the `accounts-password` package
      *
      * @param email    the email address to sign in with
@@ -768,7 +767,7 @@ public class Meteor {
 
     /**
      * Sign in the user with the given username or email address and the specified password
-     * <p/>
+     * <p>
      * Please note that this requires the `accounts-password` package
      *
      * @param username the username to sign in with (either this or `email` is required)
@@ -839,9 +838,9 @@ public class Meteor {
 
     /**
      * Registers a new user with the specified username, email address and password
-     * <p/>
+     * <p>
      * This method will automatically login as the new user on success
-     * <p/>
+     * <p>
      * Please note that this requires the `accounts-password` package
      *
      * @param username the username to register with (either this or `email` is required)
@@ -855,9 +854,9 @@ public class Meteor {
 
     /**
      * Registers a new user with the specified username, email address and password
-     * <p/>
+     * <p>
      * This method will automatically login as the new user on success
-     * <p/>
+     * <p>
      * Please note that this requires the `accounts-password` package
      *
      * @param username the username to register with (either this or `email` is required)
