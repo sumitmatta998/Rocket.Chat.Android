@@ -3,6 +3,7 @@ package chat.rocket.operations.methods;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.rocket.models.Message;
 import chat.rocket.operations.meteor.Meteor;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.ResultListener;
@@ -173,8 +174,7 @@ public class RocketMethods {
         mMeteor.call("removeUserFromRoom", new Object[]{data}, listener);
     }
 
-    public void reportMessage(String message, String description, ResultListener listener) {
-        //TODO: What it the message field? Just a string or must be the a message object?
+    public void reportMessage(Message message, String description, ResultListener listener) {
         mMeteor.call("removeUserFromRoom", new Object[]{message, description}, listener);
     }
 

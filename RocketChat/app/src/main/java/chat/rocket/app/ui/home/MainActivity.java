@@ -59,6 +59,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             @Override
             public void onResult(Messages result) {
                 mAdapter.addAll(result.getMessages());
+                for (Message m : result.getMessages()) {
+                    if (m.getUsernameId().getUsername().equals("cotta-1"))
+                        mRocketMethods.reportMessage(m, "lol, report it", new LogListener("reportmsg"));
+                }
             }
 
             @Override
@@ -66,16 +70,13 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 super.onError(error, reason, details);
             }
         });
-        NavigationView rightNavigationView = (NavigationView) findViewById(R.id.RightNavView);
-        rightNavigationView.setNavigationItemSelectedListener(this);
+
     }
 
     @Override
     public void onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             mDrawerLayout.closeDrawer(Gravity.LEFT);
-        } else if (mDrawerLayout.isDrawerOpen(Gravity.RIGHT)) {
-            mDrawerLayout.closeDrawer(Gravity.RIGHT);
         } else {
             super.onBackPressed();
         }
@@ -90,21 +91,6 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.RightNavViewMenuItem) {
-            if (mDrawerLayout.isDrawerOpen(Gravity.RIGHT)) {
-                mDrawerLayout.closeDrawer(Gravity.RIGHT);
-            } else {
-                mDrawerLayout.openDrawer(Gravity.RIGHT);
-            }
-        } else if (item.getItemId() == R.id.SearchMenuItem) {
-            mRocketMethods.messageSearch("GENERAL", "teste", new MessageSearchListener() {
-                @Override
-                public void onResult(MessageSearchResults result) {
-                    mAdapter.clear();
-                    mAdapter.addAll(result.getMessages());
-                }
-            });
-        }
         return super.onOptionsItemSelected(item);
     }
 

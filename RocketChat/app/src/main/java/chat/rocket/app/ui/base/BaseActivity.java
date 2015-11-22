@@ -101,7 +101,7 @@ public class BaseActivity extends RxAppCompatActivity implements MeteorCallback 
         }
     }
 
-    private void log(String str) {
+    protected void log(String str) {
         Log.d("teste", str);
     }
 
