@@ -22,6 +22,7 @@ import chat.rocket.operations.methods.listeners.LeaveRoomListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 import chat.rocket.operations.methods.listeners.OpenRoomListener;
+import chat.rocket.operations.methods.listeners.ResetAvatarListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
 import chat.rocket.operations.methods.listeners.SendConfirmationEmailListener;
 import chat.rocket.operations.methods.listeners.SendForgotPasswordEmailListener;
@@ -177,7 +178,7 @@ public class RocketMethods {
         mMeteor.call("removeUserFromRoom", new Object[]{message, description}, listener);
     }
 
-    public void resetAvatar(ResultListener listener) {
+    public void resetAvatar(ResetAvatarListener listener) {
         mMeteor.call("resetAvatar", listener);
     }
 
