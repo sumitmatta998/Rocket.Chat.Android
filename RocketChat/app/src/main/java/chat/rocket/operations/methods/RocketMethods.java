@@ -23,6 +23,7 @@ import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 import chat.rocket.operations.methods.listeners.OpenRoomListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
+import chat.rocket.operations.methods.listeners.SendConfirmationEmailListener;
 import chat.rocket.operations.methods.listeners.SendForgotPasswordEmailListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
 import chat.rocket.operations.methods.listeners.UpdateMessageListener;
@@ -222,7 +223,7 @@ public class RocketMethods {
         mMeteor.call("saveUserProfile", new Object[]{data}, listener);
     }
 
-    public void sendConfirmationEmail(String email, ResultListener listener) {
+    public void sendConfirmationEmail(String email, SendConfirmationEmailListener listener) {
         mMeteor.call("sendConfirmationEmail", new Object[]{email}, listener);
     }
 
