@@ -29,6 +29,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.ws.WebSocket;
 import com.squareup.okhttp.ws.WebSocketCall;
 import com.squareup.okhttp.ws.WebSocketListener;
@@ -38,9 +39,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.BuildConfig;
@@ -85,7 +84,6 @@ public class Meteor {
     /**
      * Messages that couldn't be dispatched yet and thus had to be queued
      */
-    private final Queue<String> mQueuedMessages;
     private final Persistence persistence;
     private String mServerUri;
     private String mDdpVersion;
@@ -186,9 +184,6 @@ public class Meteor {
 
         // create a map that holds the pending Listener instances
         mListeners = new HashMap<String, Listener>();
-
-        // create a queue that holds undispatched messages waiting to be sent
-        mQueuedMessages = new ConcurrentLinkedQueue<String>();
 
         // save the server URI
         mServerUri = serverUri;
@@ -312,6 +307,10 @@ public class Meteor {
         client.setConnectTimeout(1, TimeUnit.MINUTES);
         client.setReadTimeout(1, TimeUnit.MINUTES);
         client.setWriteTimeout(1, TimeUnit.MINUTES);
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        client.networkInterceptors().add(loggingInterceptor);
+
         Request request = new Request.Builder()
                 .url(mServerUri)
                 .build();
@@ -331,7 +330,7 @@ public class Meteor {
         if (existingSessionID != null) {
             data.put(Protocol.Field.SESSION, existingSessionID);
         }
-        send(data);
+        send("", data);
     }
 
     /**
@@ -360,7 +359,7 @@ public class Meteor {
      *
      * @param obj the Java object to send
      */
-    private void send(final Object obj) {
+    private void send(String callId, final Object obj) {
         // serialize the object to JSON
         final String jsonStr = toJson(obj);
 
@@ -369,7 +368,7 @@ public class Meteor {
         }
 
         // send the JSON string
-        send(jsonStr);
+        send(callId, jsonStr);
     }
 
     /**
@@ -377,19 +376,12 @@ public class Meteor {
      *
      * @param message the string to send
      */
-    private void send(final String message) {
+    private void send(String callId, final String message) {
         if (message == null) {
             throw new RuntimeException("You cannot send `null` messages");
         }
-
-        if (isConnected()) {
-            log("SEND: " + message);
-            sendMessagePost(message);
-
-        } else {
-            log("QUEUE: " + message);
-            mQueuedMessages.add(message);
-        }
+        log("SEND: " + message);
+        sendMessagePost(callId, message);
     }
 
     /**
@@ -656,7 +648,7 @@ public class Meteor {
         if (id != null) {
             data.put(Protocol.Field.ID, id);
         }
-        send(data);
+        send("", data);
     }
 
     /**
@@ -751,6 +743,7 @@ public class Meteor {
     public void loginWithUsername(final String username, final String password, final ResultListener listener) {
         login(username, null, password, listener);
     }
+
 
     /**
      * Sign in the user with the given email address and password
@@ -974,7 +967,7 @@ public class Meteor {
         if (randomSeed != null) {
             data.put(Protocol.Field.RANDOM_SEED, randomSeed);
         }
-        send(data);
+        send(callId, data);
     }
 
     /**
@@ -1023,7 +1016,7 @@ public class Meteor {
         if (params != null) {
             data.put(Protocol.Field.PARAMS, params);
         }
-        send(data);
+        send(subscriptionId, data);
 
         // return the generated subscription ID
         return subscriptionId;
@@ -1054,7 +1047,7 @@ public class Meteor {
         final Map<String, Object> data = new HashMap<>();
         data.put(Protocol.Field.MESSAGE, Protocol.Message.UNSUBSCRIBE);
         data.put(Protocol.Field.ID, subscriptionId);
-        send(data);
+        send(subscriptionId, data);
     }
 
     /**
@@ -1120,11 +1113,6 @@ public class Meteor {
     private void announceSessionReady(final boolean signedInAutomatically) {
         // run the callback that waits for the connection to open
         onConnectPost(signedInAutomatically);
-
-        // try to dispatch queued messages now
-        for (String queuedMessage : mQueuedMessages) {
-            send(queuedMessage);
-        }
     }
 
     private void onConnectPost(final boolean signedInAutomatically) {
@@ -1228,7 +1216,7 @@ public class Meteor {
         });
     }
 
-    private void sendMessagePost(final String message) {
+    private void sendMessagePost(final String callId, final String message) {
         if (mBackgroundHandler == null) {
             return;
         }
@@ -1241,6 +1229,14 @@ public class Meteor {
                     mConnection.sendMessage(request);
                 } catch (Exception e) {
                     onExceptionPost(e);
+                    Listener listener = mListeners.remove(callId);
+                    if (listener != null) {
+                        if (listener instanceof ResultListener) {
+                            onErrorPost((ResultListener) listener, e.toString(), e.getMessage(), e.getLocalizedMessage());
+                        } else if (listener instanceof SubscribeListener) {
+                            onErrorPost((SubscribeListener) listener, e.toString(), e.getMessage(), e.getLocalizedMessage());
+                        }
+                    }
                 }
             }
         });

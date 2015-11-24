@@ -10,6 +10,10 @@ public class TimeStamp {
     @SerializedName("$date")
     private long date;
 
+    public TimeStamp(long date) {
+        this.date = date;
+    }
+
     public long getDate() {
         return date;
     }

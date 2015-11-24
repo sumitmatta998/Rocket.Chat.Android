@@ -1,4 +1,4 @@
-package chat.rocket.operations.meteor;
+package chat.rocket.models;
 
 import java.util.List;
 

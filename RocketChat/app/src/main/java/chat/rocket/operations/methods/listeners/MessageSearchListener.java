@@ -1,7 +1,6 @@
 package chat.rocket.operations.methods.listeners;
 
-import chat.rocket.models.Messages;
-import chat.rocket.operations.meteor.MessageSearchResults;
+import chat.rocket.models.MessageSearchResults;
 
 /**
  * Created by julio on 21/11/15.

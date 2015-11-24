@@ -20,6 +20,7 @@ public class RegistrationActivity extends BaseActivity {
     private EditText mPasswordEditText;
     private EditText mPasswordConfirmationEditText;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,11 +45,16 @@ public class RegistrationActivity extends BaseActivity {
 
     private boolean validadeFields(String name, String email, String password, String passwordConfirmation) {
         //TODO: What would be valid values here?
-        return name.length() > 3 && Patterns.EMAIL_ADDRESS.matcher(email).matches() && password.length() > 6 && password.equals(passwordConfirmation);
+        return name.length() > 3 && Patterns.EMAIL_ADDRESS.matcher(email).matches() && password.length() > 5 && password.equals(passwordConfirmation);
     }
 
     private void executeRegistration(String name, String email, String password) {
         mRocketMethods.registerUser(name, email, password, new RegisterUserListener() {
+            @Override
+            public void onError(String error, String reason, String details) {
+
+            }
+
             @Override
             public void onResult(String result) {
                 returnUserData(email, password);

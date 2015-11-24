@@ -29,6 +29,11 @@ public class ForgotPasswordActivity extends BaseActivity {
 
         mRocketMethods.sendForgotPasswordEmail(email, new SendForgotPasswordEmailListener() {
             @Override
+            public void onError(String error, String reason, String details) {
+
+            }
+
+            @Override
             public void onResult(Boolean result) {
                 Toast.makeText(ForgotPasswordActivity.this, R.string.we_sent_you_an_email_check_it, Toast.LENGTH_LONG).show();
                 finish();

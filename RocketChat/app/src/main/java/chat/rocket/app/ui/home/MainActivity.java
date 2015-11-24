@@ -14,15 +14,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.models.Message;
 import chat.rocket.models.Messages;
-import chat.rocket.operations.meteor.MessageSearchResults;
+import chat.rocket.models.TimeStamp;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
-import chat.rocket.operations.methods.listeners.LogListener;
-import chat.rocket.operations.methods.listeners.MessageSearchListener;
 
 public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout mDrawerLayout;
@@ -55,19 +54,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         ListView listview = (ListView) findViewById(R.id.RoomMsgsListView);
         mAdapter = new ArrayAdapter<Message>(this, android.R.layout.simple_list_item_1, android.R.id.text1, new ArrayList<>());
         listview.setAdapter(mAdapter);
-        mRocketMethods.loadHistory("GENERAL", 0, 50, 0, new LoadHistoryListener() {
+        mRocketMethods.loadHistory("GENERAL", null, 50, new TimeStamp(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)), new LoadHistoryListener() {
             @Override
             public void onResult(Messages result) {
                 mAdapter.addAll(result.getMessages());
-                for (Message m : result.getMessages()) {
-                    if (m.getUsernameId().getUsername().equals("cotta-1"))
-                        mRocketMethods.reportMessage(m, "lol, report it", new LogListener("reportmsg"));
-                }
             }
 
             @Override
             public void onError(String error, String reason, String details) {
-                super.onError(error, reason, details);
             }
         });
 

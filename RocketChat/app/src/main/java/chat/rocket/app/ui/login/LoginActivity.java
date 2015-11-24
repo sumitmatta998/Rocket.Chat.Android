@@ -2,7 +2,6 @@ package chat.rocket.app.ui.login;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.EditText;
@@ -13,14 +12,11 @@ import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.GraphRequest;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
-import org.json.JSONException;
-
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import chat.rocket.app.R;
@@ -29,6 +25,7 @@ import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
 import chat.rocket.models.Token;
+import chat.rocket.operations.methods.listeners.LogListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 
 /**
@@ -40,12 +37,36 @@ public class LoginActivity extends BaseActivity {
     private static final int REGISTRATION_REQUEST_CODE = 432;
     private LoginButton mFacebookButton;
     private CallbackManager mCallbackManager;
+    private LoginListener mLoginListener = new LoginListener() {
+        @Override
+        public void onResult(Token result) {
+            //TODO: Understand when the username needs to be set!!
+            mRocketMethods.getUsernameSuggestion(new LogListener("getusernamesug") {
+                @Override
+                public void onSuccess(String result) {
+                    super.onSuccess(result);
+                    mRocketMethods.setUsername(result.replace("\"", ""), new LogListener("saveuserprofile") {
+                        @Override
+                        public void onSuccess(String result) {
+                            super.onSuccess(result);
+                            startMainActivity();
+                        }
+                    });
+                }
+            });
+        }
+
+        @Override
+        public void onError(String error, String reason, String details) {
+            Toast.makeText(LoginActivity.this, error + ", " + reason + ", " + details, Toast.LENGTH_LONG).show();
+        }
+    };
     private AccessTokenTracker mAccessTokenTracker = new AccessTokenTracker() {
         @Override
         protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
             if (currentAccessToken != null) {
                 Log.d("teste", currentAccessToken.toString());
-                requestMe();
+                mRocketMethods.loginWithFacebook(currentAccessToken.getToken(), currentAccessToken.getExpires().getTime() - new Date().getTime(), mLoginListener);
             }
         }
     };
@@ -91,7 +112,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void openForgotPassword() {
-        Intent intent= new Intent(this, ForgotPasswordActivity.class);
+        Intent intent = new Intent(this, ForgotPasswordActivity.class);
         startActivity(intent);
     }
 
@@ -101,22 +122,11 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void executeLogin(String login, String password) {
-        LoginListener loginListener = new LoginListener() {
-            @Override
-            public void onResult(Token result) {
-                startMainActivity();
-            }
 
-            @Override
-            public void onError(String error, String reason, String details) {
-                super.onError(error, reason, details);
-                Toast.makeText(LoginActivity.this, error + ", " + reason + ", " + details, Toast.LENGTH_LONG).show();
-            }
-        };
         if (Patterns.EMAIL_ADDRESS.matcher(login).matches()) {
-            mRocketMethods.loginWithEmail(login, password, loginListener);
+            mRocketMethods.loginWithEmail(login, password, mLoginListener);
         } else {
-            mRocketMethods.loginWithUsername(login, password, loginListener);
+            mRocketMethods.loginWithUsername(login, password, mLoginListener);
         }
     }
 
@@ -124,29 +134,6 @@ public class LoginActivity extends BaseActivity {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
-    }
-
-    private void requestMe() {
-        Bundle params = new Bundle();
-        params.putString("fields", TextUtils.join(",", FIELDS));
-        new GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                "/me",
-                params,
-                HttpMethod.GET,
-                response -> {
-                    if (response != null && response.getError() == null) {
-                        try {
-                            //TODO: extract needed info and forward to server
-                            String email = response.getJSONObject().get("email").toString();
-                            String birthday = response.getJSONObject().get("birthday").toString();
-                            Toast.makeText(LoginActivity.this, email + ", " + birthday, Toast.LENGTH_LONG).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-        ).executeAsync();
     }
 
     @Override

@@ -9,17 +9,18 @@ import org.json.JSONObject;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import chat.rocket.operations.meteor.ResultListener;
+
 /**
  * Created by julio on 19/11/15.
  */
-abstract class TypedListener<T> extends LogListener {
+abstract class TypedListener<T> implements ResultListener {
     private static Gson mapper = new Gson();
 
     public abstract void onResult(T result);
 
     @Override
     public void onSuccess(String result) {
-        super.onSuccess(result);
         if (result == null) {
             result = new JSONObject().toString();
         }
