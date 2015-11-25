@@ -3,6 +3,7 @@ package chat.rocket.app.ui.base;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
@@ -20,15 +21,19 @@ public class BaseActivity extends RxAppCompatActivity implements MeteorCallback 
     @Override
     protected void onResume() {
         super.onResume();
-        // Logs 'install' and 'app activate' App Events.
-        AppEventsLogger.activateApp(this);
+        if (FacebookSdk.getApplicationId() != null) {
+            // Logs 'install' and 'app activate' App Events.
+            AppEventsLogger.activateApp(this);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Logs 'app deactivate' App Event.
-        AppEventsLogger.deactivateApp(this);
+        if (FacebookSdk.getApplicationId() != null) {
+            // Logs 'app deactivate' App Event.
+            AppEventsLogger.deactivateApp(this);
+        }
     }
 
     @Override

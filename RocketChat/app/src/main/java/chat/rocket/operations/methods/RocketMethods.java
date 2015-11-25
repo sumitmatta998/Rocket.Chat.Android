@@ -276,6 +276,19 @@ public class RocketMethods {
         //TODO: How does it work???
     }
 
+    public void loginWithOAuth(String credentialToken, String credentialSecret, final ResultListener listener) {
+        final Map<String, Object> userData = new HashMap<String, Object>();
+
+        userData.put("credentialToken", credentialToken);
+        userData.put("credentialSecret", credentialSecret);
+
+        final Map<String, Object> authData = new HashMap<String, Object>();
+        authData.put("oauth", userData);
+
+        mMeteor.call("login", new Object[]{authData}, listener);
+
+    }
+
     public void loginWithFacebook(String accessToken, long expiresIn, final ResultListener listener) {
         final Map<String, Object> userData = new HashMap<String, Object>();
 

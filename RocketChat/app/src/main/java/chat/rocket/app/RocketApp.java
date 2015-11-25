@@ -9,6 +9,8 @@ import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.FacebookSdk;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.dao.CollectionDAO;
@@ -19,19 +21,27 @@ import chat.rocket.operations.meteor.MeteorCallback;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.Persistence;
 import chat.rocket.operations.meteor.SubscribeListener;
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by julio on 16/11/15.
  */
 public class RocketApp extends Application implements Persistence, MeteorCallback {
 
+    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
+    private static final String TWITTER_KEY = "ksQFyGz3FOYdIlF3b6TS9C3Ns";
+    private static final String TWITTER_SECRET = "yyLJ3D9yKTuRKY8WhXWE2OU0eaHF0jOnwJsv14pbmbicJnlEnb";
+
+
     public static final String ACTION_DISCONNECTED = BuildConfig.APPLICATION_ID + ".METEOR.DISCONNECTED";
     public static final String ACTION_CONNECTED = BuildConfig.APPLICATION_ID + ".METEOR.CONNECTED";
+    public static final String LOGGED_KEY = "logged";
 
     @Override
     public void onCreate() {
         super.onCreate();
-        //    Fabric.with(this, new Crashlytics());
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
+        Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         DBManager.getInstance().init(this);
         setupMeteor();
         FacebookSdk.sdkInitialize(getApplicationContext());
@@ -60,9 +70,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
     @Override
     public void onConnect(boolean signedInAutomatically) {
-        Intent intent = new Intent();
-        intent.setAction(ACTION_CONNECTED);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
         RocketSubscriptions subs = new RocketSubscriptions();
         subs.loginServiceConfiguration(new SubscribeListener() {
             @Override
@@ -71,7 +79,10 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
                 if (!TextUtils.isEmpty(appId)) {
                     FacebookSdk.setApplicationId(appId);
                 }
-
+                Intent intent = new Intent();
+                intent.setAction(ACTION_CONNECTED);
+                intent.putExtra(LOGGED_KEY, signedInAutomatically);
+                LocalBroadcastManager.getInstance(RocketApp.this).sendBroadcast(intent);
             }
 
             @Override
@@ -148,18 +159,6 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             }
         });
         subs.subscription(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
-
-        subs.userData(new SubscribeListener() {
             @Override
             public void onSuccess() {
 

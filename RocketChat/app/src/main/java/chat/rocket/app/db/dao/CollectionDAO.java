@@ -1,8 +1,11 @@
 package chat.rocket.app.db.dao;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.TableBuilder;
@@ -18,6 +21,12 @@ public class CollectionDAO {
     public static final String COLUMN_COLLECTION_NAME = "collection_name";
     public static final String COLUMN_FIELDS = "collection_value";
     public static final String COLUMN_UPDATED_AT = "updated_at";
+
+    public CollectionDAO(Cursor cursor) {
+        collectionName = cursor.getString(cursor.getColumnIndex(COLUMN_COLLECTION_NAME));
+        documentID = cursor.getString(cursor.getColumnIndex(COLUMN_DOCUMENT_ID));
+        newValuesJson = cursor.getString(cursor.getColumnIndex(COLUMN_FIELDS));
+    }
 
     public static String createTableString() throws Exception {
         TableBuilder tb = new TableBuilder(TABLE_NAME);
@@ -35,6 +44,10 @@ public class CollectionDAO {
     protected String documentID;
     protected String newValuesJson;
 
+    public String getNewValuesJson() {
+        return newValuesJson;
+    }
+
     public CollectionDAO(String collectionName, String documentID, String newValuesJson) {
         this.collectionName = collectionName;
         this.documentID = documentID;
@@ -48,6 +61,36 @@ public class CollectionDAO {
         values.put(COLUMN_UPDATED_AT, new Date().getTime() / 1000);
         values.put(COLUMN_FIELDS, newValuesJson);
         return values;
+    }
+
+    public static List<CollectionDAO> query(String collectionName) {
+        List<CollectionDAO> list = new ArrayList<>();
+        Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_COLLECTION_NAME + "=?", new String[]{collectionName});
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                do {
+                    list.add(new CollectionDAO(cursor));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        return list;
+    }
+
+    public static CollectionDAO query(String collectionName, String documentID) {
+        CollectionDAO dao = null;
+        Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_COLLECTION_NAME + "=? AND " + COLUMN_DOCUMENT_ID + "=?", new String[]{collectionName, documentID});
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                do {
+                    dao = new CollectionDAO(cursor);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        return dao;
     }
 
     public void insert() {

@@ -46,9 +46,6 @@
             android:name=".db.DBContentProvider" />
 
         <meta-data
-            android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
-        <meta-data
             android:name="io.fabric.ApiKey"
             android:value="c66eaab3f868387fd222ad9fe502b903fbe676a3" />
 

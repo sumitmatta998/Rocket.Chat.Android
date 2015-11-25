@@ -14,17 +14,29 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.gson.JsonParser;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterAuthToken;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import chat.rocket.app.R;
+import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
 import chat.rocket.models.Token;
+import chat.rocket.operations.RocketSubscriptions;
+import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.LogListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 
@@ -40,18 +52,22 @@ public class LoginActivity extends BaseActivity {
     private LoginListener mLoginListener = new LoginListener() {
         @Override
         public void onResult(Token result) {
-            //TODO: Understand when the username needs to be set!!
-            mRocketMethods.getUsernameSuggestion(new LogListener("getusernamesug") {
+            RocketSubscriptions subs = new RocketSubscriptions();
+            subs.userData(new SubscribeListener() {
                 @Override
-                public void onSuccess(String result) {
-                    super.onSuccess(result);
-                    mRocketMethods.setUsername(result.replace("\"", ""), new LogListener("saveuserprofile") {
-                        @Override
-                        public void onSuccess(String result) {
-                            super.onSuccess(result);
-                            startMainActivity();
-                        }
-                    });
+                public void onSuccess() {
+                    CollectionDAO dao = CollectionDAO.query("users", result.getId());
+                    JsonParser parser = new JsonParser();
+                    if (!parser.parse(dao.getNewValuesJson()).getAsJsonObject().has("username")) {
+                        getUsernameSuggestion();
+                    } else {
+                        startMainActivity();
+                    }
+                }
+
+                @Override
+                public void onError(String error, String reason, String details) {
+
                 }
             });
         }
@@ -61,6 +77,23 @@ public class LoginActivity extends BaseActivity {
             Toast.makeText(LoginActivity.this, error + ", " + reason + ", " + details, Toast.LENGTH_LONG).show();
         }
     };
+
+    private void getUsernameSuggestion() {
+        mRocketMethods.getUsernameSuggestion(new LogListener("getusernamesug") {
+            @Override
+            public void onSuccess(String result) {
+                super.onSuccess(result);
+                mRocketMethods.setUsername(result.replace("\"", ""), new LogListener("saveuserprofile") {
+                    @Override
+                    public void onSuccess(String result) {
+                        super.onSuccess(result);
+                        startMainActivity();
+                    }
+                });
+            }
+        });
+    }
+
     private AccessTokenTracker mAccessTokenTracker = new AccessTokenTracker() {
         @Override
         protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
@@ -87,6 +120,7 @@ public class LoginActivity extends BaseActivity {
             // App code
         }
     };
+    private TwitterLoginButton mTwitterButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +143,23 @@ public class LoginActivity extends BaseActivity {
         findViewById(R.id.RegistrationTextView).setOnClickListener(v -> {
             openRegistrationForResult();
         });
+
+
+        mTwitterButton = (TwitterLoginButton) findViewById(R.id.TwitterButton);
+        mTwitterButton.setCallback(new Callback<TwitterSession>() {
+            @Override
+            public void success(Result<TwitterSession> result) {
+                TwitterAuthConfig authConfig = TwitterCore.getInstance().getAuthConfig();
+                TwitterAuthToken authToken = result.data.getAuthToken();
+                mRocketMethods.loginWithOAuth(authToken.token, authToken.secret, mLoginListener);
+            }
+
+            @Override
+            public void failure(TwitterException exception) {
+                Log.d("TwitterKit", "Login with Twitter failure", exception);
+            }
+        });
+
     }
 
     private void openForgotPassword() {
@@ -145,7 +196,9 @@ public class LoginActivity extends BaseActivity {
             String password = data.getStringExtra(RegistrationActivity.PASSWORD);
             executeLogin(login, password);
         }
+        mTwitterButton.onActivityResult(requestCode, resultCode, data);
     }
+
 
     @Override
     public void onDestroy() {
