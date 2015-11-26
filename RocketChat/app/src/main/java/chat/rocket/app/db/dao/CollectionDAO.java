@@ -2,18 +2,22 @@ package chat.rocket.app.db.dao;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.support.v4.util.LruCache;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import chat.rocket.app.db.DBManager;
+import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
 
 /**
  * Created by julio on 22/11/15.
  */
-public class CollectionDAO {
+public class CollectionDAO implements ContentValuables {
+    private static LruCache<String, LruCache<String, CollectionDAO>> mCache = new LruCache<>(5);
+
     public static final String TABLE_NAME = "collections";
     // android internal value, to be used with cursors
     public static final String COLUMN_ID = "_id";
@@ -54,7 +58,7 @@ public class CollectionDAO {
         this.newValuesJson = newValuesJson;
     }
 
-    private ContentValues toContentValues() {
+    public ContentValues toContentValues() {
         ContentValues values = new ContentValues();
         values.put(COLUMN_DOCUMENT_ID, documentID);
         values.put(COLUMN_COLLECTION_NAME, collectionName);
@@ -80,6 +84,14 @@ public class CollectionDAO {
 
     public static CollectionDAO query(String collectionName, String documentID) {
         CollectionDAO dao = null;
+        LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
+        if (cache != null) {
+            dao = cache.get(documentID);
+            if (dao != null) {
+                return dao;
+            }
+        }
+
         Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_COLLECTION_NAME + "=? AND " + COLUMN_DOCUMENT_ID + "=?", new String[]{collectionName, documentID});
         if (cursor != null) {
             if (cursor.getCount() > 0) {
@@ -94,17 +106,30 @@ public class CollectionDAO {
     }
 
     public void insert() {
-        DBManager.getInstance().insert(TABLE_NAME, toContentValues());
+        insertIntoCache();
+        DBManager.getInstance().insert(TABLE_NAME, this);
+    }
+
+    private void insertIntoCache() {
+        LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
+        if (cache == null) {
+            cache = new LruCache<>(20);
+            mCache.put(collectionName, cache);
+        }
+        cache.put(documentID, this);
     }
 
     public void update() {
+        insertIntoCache();
         DBManager.getInstance().update(TABLE_NAME,
-                toContentValues(),
+                this,
                 COLUMN_COLLECTION_NAME + "=? AND " + COLUMN_DOCUMENT_ID + "=?",
                 new String[]{collectionName, documentID});
     }
 
     public void remove() {
+        mCache.remove(collectionName + documentID);
+
         DBManager.getInstance().delete(TABLE_NAME, COLUMN_COLLECTION_NAME + "=? AND " + COLUMN_DOCUMENT_ID + "=?",
                 new String[]{collectionName, documentID});
     }

@@ -11,7 +11,6 @@ import android.widget.Toast;
 import chat.rocket.app.R;
 import chat.rocket.app.RocketApp;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.LoginActivity;
 
 
@@ -22,8 +21,7 @@ public class SplashActivity extends BaseActivity {
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            boolean signedInAutomatically = intent.getBooleanExtra(RocketApp.LOGGED_KEY, false);
-            Intent intent1 = new Intent(SplashActivity.this, signedInAutomatically ? MainActivity.class : LoginActivity.class);
+            Intent intent1 = new Intent(SplashActivity.this, LoginActivity.class);
             startActivity(intent1);
             finish();
         }
@@ -44,6 +42,12 @@ public class SplashActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        endMeteorConnection();
     }
 
     @Override

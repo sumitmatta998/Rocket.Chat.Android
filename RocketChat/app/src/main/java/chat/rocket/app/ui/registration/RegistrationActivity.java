@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
@@ -36,9 +37,11 @@ public class RegistrationActivity extends BaseActivity {
             String email = mEmailEditText.getText().toString().trim();
             String password = mPasswordEditText.getText().toString().trim();
             String passwordConfirmation = mPasswordConfirmationEditText.getText().toString().trim();
-
+            //TODO: Handle the input in a nice way and show a proper message to the user about what is wrong.
             if (validadeFields(name, email, password, passwordConfirmation)) {
                 executeRegistration(name, email, password);
+            } else {
+                Toast.makeText(this, "Invalid input, check your fields", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -52,7 +55,8 @@ public class RegistrationActivity extends BaseActivity {
         mRocketMethods.registerUser(name, email, password, new RegisterUserListener() {
             @Override
             public void onError(String error, String reason, String details) {
-
+                //TODO: Think about a nice error message
+                Toast.makeText(RegistrationActivity.this, "Ops, something is wrong: " + reason, Toast.LENGTH_LONG).show();
             }
 
             @Override

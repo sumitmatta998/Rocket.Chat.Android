@@ -15,7 +15,7 @@ import chat.rocket.operations.methods.RocketMethods;
  * Created by julio on 20/11/15.
  */
 public class BaseActivity extends RxAppCompatActivity implements MeteorCallback {
-    private MeteorSingleton mMeteor;
+    protected MeteorSingleton mMeteor;
     protected RocketMethods mRocketMethods;
 
     @Override
@@ -52,23 +52,16 @@ public class BaseActivity extends RxAppCompatActivity implements MeteorCallback 
         }
     }
 
+    protected void endMeteorConnection() {
+        mMeteor.disconnect();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (isFinishing()) {
             mMeteor.unsetCallback(this);
         }
-        if (mClosingApp) {
-            mMeteor.disconnect();
-        }
-    }
-
-    private boolean mClosingApp;
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        mClosingApp = true;
     }
 
     @Override

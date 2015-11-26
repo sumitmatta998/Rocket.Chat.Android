@@ -1,7 +1,6 @@
 package chat.rocket.app.db;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,6 +10,9 @@ import android.text.TextUtils;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
+
+import chat.rocket.app.db.util.AsyncQueryHandler;
+import chat.rocket.app.db.util.ContentValuables;
 
 
 public class DBManager {
@@ -110,30 +112,32 @@ public class DBManager {
         return cursor;
     }
 
-    public long update(String table, ContentValues cvalues, String selection, String[] selectionArgs) {
+    public long update(String table, ContentValuables cvalues, String selection, String[] selectionArgs) {
         long id = -1;
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
-        id = mCtx.getContentResolver().update(uri, cvalues, selection, selectionArgs);
+        new AsyncQueryHandler(mCtx.getContentResolver()) {
+        }.startUpdate(2, null, uri, cvalues, selection, selectionArgs);
         return id;
     }
 
 
-    public boolean delete(String table, String selection, String[] selectionArgs) {
+    public void delete(String table, String selection, String[] selectionArgs) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
-        return mCtx.getContentResolver().delete(uri, selection, selectionArgs) > 0;
+        new AsyncQueryHandler(mCtx.getContentResolver()) {
+        }.startDelete(-1, null, uri, selection, selectionArgs);
     }
 
-    public boolean deleteAll(String table) {
+    public void deleteAll(String table) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
-        return mCtx.getContentResolver().delete(uri, null, null) > 0;
+        new AsyncQueryHandler(mCtx.getContentResolver()) {
+        }.startDelete(-1, null, uri, null, null);
     }
 
-    public long insert(String table, ContentValues values) {
+    public void insert(String table, ContentValuables values) {
         long id = -1;
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
-        Uri newUri = mCtx.getContentResolver().insert(uri, values);
-        id = Integer.parseInt(newUri.getLastPathSegment());
-        return id;
+        new AsyncQueryHandler(mCtx.getContentResolver()) {
+        }.startInsert(0, null, uri, values);
     }
 
     public Loader<Cursor> getLoader(String table) {
@@ -150,8 +154,9 @@ public class DBManager {
         return new CursorLoader(mCtx, uri, projection, selection, selecionArgs, sortBy);
     }
 
-    public void bulkInsert(String table, ContentValues[] values) {
+    public void bulkInsert(String table, ContentValuables[] values) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
-        mCtx.getContentResolver().bulkInsert(uri, values);
+        new AsyncQueryHandler(mCtx.getContentResolver()) {
+        }.startBulkInsert(1, null, uri, values);
     }
 }

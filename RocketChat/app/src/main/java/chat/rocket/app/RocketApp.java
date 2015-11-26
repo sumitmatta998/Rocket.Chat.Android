@@ -12,6 +12,11 @@ import com.facebook.FacebookSdk;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
+
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.LoginServiceConfiguration;
@@ -29,8 +34,6 @@ import io.fabric.sdk.android.Fabric;
 public class RocketApp extends Application implements Persistence, MeteorCallback {
 
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
-    private static final String TWITTER_KEY = "ksQFyGz3FOYdIlF3b6TS9C3Ns";
-    private static final String TWITTER_SECRET = "yyLJ3D9yKTuRKY8WhXWE2OU0eaHF0jOnwJsv14pbmbicJnlEnb";
 
 
     public static final String ACTION_DISCONNECTED = BuildConfig.APPLICATION_ID + ".METEOR.DISCONNECTED";
@@ -40,8 +43,12 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
     @Override
     public void onCreate() {
         super.onCreate();
-        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
-        Fabric.with(this, new Twitter(authConfig), new Crashlytics());
+        if (!TextUtils.isEmpty(BuildConfig.TWITTER_KEY)) {
+            TwitterAuthConfig authConfig = new TwitterAuthConfig(BuildConfig.TWITTER_KEY, BuildConfig.TWITTER_SECRET);
+            Fabric.with(this, new Twitter(authConfig), new Crashlytics());
+        } else {
+            Fabric.with(this, new Crashlytics());
+        }
         DBManager.getInstance().init(this);
         setupMeteor();
         FacebookSdk.sdkInitialize(getApplicationContext());
@@ -196,9 +203,44 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         new CollectionDAO(collectionName, documentID, newValuesJson).insert();
     }
 
+    //TODO: Do it in a async way
+    public static JSONObject deepMerge(JSONObject source, JSONObject target) throws JSONException {
+        Iterator<String> it = source.keys();
+        while (it.hasNext()) {
+            String key = it.next();
+            Object value = source.get(key);
+            if (!target.has(key)) {
+                // new value for "key":
+                target.put(key, value);
+            } else {
+                // existing value for "key" - recursively deep merge:
+                if (value instanceof JSONObject) {
+                    JSONObject valueJson = (JSONObject) value;
+                    deepMerge(valueJson, target.getJSONObject(key));
+                } else {
+                    target.put(key, value);
+                }
+            }
+        }
+        return target;
+    }
+
+
     @Override
     public void onDataChanged(String collectionName, String documentID, String updatedValuesJson, String removedValuesJson) {
-        new CollectionDAO(collectionName, documentID, updatedValuesJson).update();
+
+        CollectionDAO dao = CollectionDAO.query(collectionName, documentID);
+        if (dao != null) {
+            try {
+                JSONObject merged = deepMerge(new JSONObject(dao.getNewValuesJson()), new JSONObject(updatedValuesJson));
+                new CollectionDAO(collectionName, documentID, merged.toString()).update();
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Crashlytics.logException(e);
+            }
+        } else {
+            new CollectionDAO(collectionName, documentID, updatedValuesJson).insert();
+        }
     }
 
     @Override

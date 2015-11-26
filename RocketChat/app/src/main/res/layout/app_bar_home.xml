@@ -32,7 +32,7 @@
             android:layout_height="match_parent"
             android:layout_toLeftOf="@+id/RightMenuButtons" />
 
-        <RadioGroup
+        <LinearLayout
             android:id="@+id/RightMenuButtons"
             android:layout_width="40dp"
             android:layout_height="match_parent"
@@ -40,65 +40,65 @@
             android:orientation="vertical">
 
             <ImageButton
+                android:id="@+id/SettingsButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_settings_applications_24dp" />
 
             <ImageButton
+                android:id="@+id/SearchButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_search_black_24dp" />
 
             <ImageButton
+                android:id="@+id/MembersButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_people_24dp" />
 
             <ImageButton
+                android:id="@+id/FilesButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_folder_24dp" />
 
             <ImageButton
+                android:id="@+id/StaredButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_star_24dp" />
 
             <ImageButton
+                android:id="@+id/PinnedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="0dp"
                 android:gravity="center"
-                android:paddingBottom="12dp"
                 android:paddingTop="12dp"
                 android:src="@drawable/ic_archive_24dp" />
-        </RadioGroup>
+        </LinearLayout>
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton

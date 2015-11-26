@@ -30,6 +30,11 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        def Properties twitterProperties = new Properties()
+        twitterProperties.load(new FileInputStream(file('twitter.properties')));
+        //TODO: If file does not exist, allow the build to continue and set empty values
+        buildConfigField "String", "TWITTER_KEY", twitterProperties['TWITTER_KEY']
+        buildConfigField "String", "TWITTER_SECRET", twitterProperties['TWITTER_SECRET']
     }
     signingConfigs {
         debug {
@@ -46,18 +51,21 @@ android {
         exclude 'META-INF/MANIFEST.MF'
         exclude 'META-INF/NOTICE'
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             resValue "string", "facebook_app_id", "12345678"
             buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+
         }
         debug {
             minifyEnabled false
             resValue "string", "facebook_app_id", "1685539698348386"
             //buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
-             buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+            buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+
         }
     }
     compileOptions {

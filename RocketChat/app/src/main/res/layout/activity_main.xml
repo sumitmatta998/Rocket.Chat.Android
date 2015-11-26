@@ -21,7 +21,7 @@
         app:headerLayout="@layout/nav_header_home"
         app:menu="@menu/activity_home_drawer" />
 
-    <android.support.design.widget.NavigationView
+    <FrameLayout
         android:id="@+id/RightNavView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
