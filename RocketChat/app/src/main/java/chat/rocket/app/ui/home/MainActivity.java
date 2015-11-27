@@ -14,8 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import chat.rocket.app.R;
+import chat.rocket.app.db.collections.RCSubscription;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.menu.FileListFragment;
 import chat.rocket.app.ui.home.menu.MembersListFragment;
@@ -38,7 +40,6 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Chat Room: GENERAL");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -59,7 +60,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         ListView listview = (ListView) findViewById(R.id.RoomMsgsListView);
         mAdapter = new ArrayAdapter<Message>(this, android.R.layout.simple_list_item_1, android.R.id.text1, new ArrayList<>());
         listview.setAdapter(mAdapter);
-        mRocketMethods.loadHistory("GENERAL", null, 50, new TimeStamp(0), new LoadHistoryListener() {
+        List<RCSubscription> rcs = RCSubscription.getRCSubscription();
+        RCSubscription rcSubscription = rcs.get(0);
+        getSupportActionBar().setTitle("Chat Room: "+rcSubscription.getName());
+
+        mRocketMethods.loadHistory(rcSubscription.getRid(), null, 50, rcSubscription.getLs(), new LoadHistoryListener() {
             @Override
             public void onResult(Messages result) {
                 mAdapter.addAll(result.getMessages());

@@ -74,16 +74,31 @@ public class RocketSubscriptions {
         return new Subscription(mMeteor.subscribe("roomFiles", new Object[]{rid}, subscribeListener), mMeteor);
     }
 
-    public Subscription s(SubscribeListener subscribeListener) {
+    public Subscription fullUserData(String filter, String limit, SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("fullUserData", new Object[]{filter, limit}, subscribeListener), mMeteor);
+    }
+
+    public Subscription filteredUsers(SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("filteredUsers", null, subscribeListener), mMeteor);
+    }
+
+    public Subscription channelAutocomplete(SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("channelAutocomplete", null, subscribeListener), mMeteor);
+    }
+
+    public Subscription starredMessages(String rid, SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("starredMessages", new Object[]{rid}, subscribeListener), mMeteor);
+    }
+
+    public Subscription pinnedMessages(String rid, SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("pinnedMessages", new Object[]{rid}, subscribeListener), mMeteor);
+    }
+
+    public Subscription s1(SubscribeListener subscribeListener) {
         return new Subscription(mMeteor.subscribe("", null, subscribeListener), mMeteor);
     }
 
     //TODO: understand this
-    //["{\"msg\":\"sub\",\"id\":\"JCKKBAKRnr6BhC4qk\",\"name\":\"filteredUsers\",\"params\":[\"\"]}"]
-    //["{\"msg\":\"sub\",\"id\":\"jcLZYJ7faH8TiMJDm\",\"name\":\"fullUserData\",\"params\":[null,1]}"]
-    //["{\"msg\":\"sub\",\"id\":\"2hyq6Hat2XfPWc3Jr\",\"name\":\"channelAutocomplete\",\"params\":[\"\"]}"]
-    //["{\"msg\":\"sub\",\"id\":\"mB242smievjf6hkeP\",\"name\":\"starredMessages\",\"params\":[\"ZxGahBDCn2cMb6YGG\"]}"]
-    //["{\"msg\":\"sub\",\"id\":\"Yi79cbchwJL3o8PH3\",\"name\":\"pinnedMessages\",\"params\":[\"GENERAL\"]}"]
-
+    //["{\"msg\":\"sub\",\"id\":\"5izQcN75JtrnL79Rz\",\"name\":\"meteor_autoupdate_clientVersions\",\"params\":[]}"]
 
 }

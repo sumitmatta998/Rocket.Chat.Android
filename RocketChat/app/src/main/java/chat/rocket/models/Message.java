@@ -9,6 +9,7 @@ import java.util.List;
  * Created by julio on 19/11/15.
  */
 public class Message {
+
     @SerializedName("_id")
     private String id;
     private String msg;

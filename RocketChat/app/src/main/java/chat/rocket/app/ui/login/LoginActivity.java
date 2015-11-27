@@ -17,7 +17,6 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.google.gson.Gson;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterAuthToken;
@@ -33,9 +32,9 @@ import chat.rocket.app.BuildConfig;
 import chat.rocket.app.R;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.Users;
-import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.MainActivity;
+import chat.rocket.app.ui.login.SetUserNameDialog.SetUsernameCallback;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
 import chat.rocket.models.Token;
@@ -48,7 +47,7 @@ import chat.rocket.operations.methods.listeners.LoginListener;
 /**
  * Created by julio on 20/11/15.
  */
-public class LoginActivity extends BaseActivity implements SetUserNameDialog.SetUsernameCallback {
+public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     private static final List<String> PERMISSIONS = Arrays.asList("email", "user_birthday");
     private static final int REGISTRATION_REQUEST_CODE = 432;
     private LoginButton mFacebookButton;
@@ -72,8 +71,7 @@ public class LoginActivity extends BaseActivity implements SetUserNameDialog.Set
         subs.userData(new SubscribeListener() {
             @Override
             public void onSuccess() {
-                CollectionDAO dao = CollectionDAO.query(Users.COLLECTION_NAME, userId);
-                Users user = new Gson().fromJson(dao.getNewValuesJson(), Users.class);
+                Users user = Users.getUser(userId);
                 if (TextUtils.isEmpty(user.getUsername())) {
                     getUsernameSuggestion();
                 } else {
@@ -144,8 +142,7 @@ public class LoginActivity extends BaseActivity implements SetUserNameDialog.Set
         });
 
         if (mMeteor.isLoggedIn()) {
-            CollectionDAO dao = CollectionDAO.query(Users.COLLECTION_NAME, mMeteor.getUserId());
-            Users user = new Gson().fromJson(dao.getNewValuesJson(), Users.class);
+            Users user = Users.getUser(mMeteor.getUserId());
             if (user.getUsername() != null) {
                 startMainActivity();
             } else {

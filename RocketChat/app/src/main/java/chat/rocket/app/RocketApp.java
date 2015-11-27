@@ -12,11 +12,6 @@ import com.facebook.FacebookSdk;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Iterator;
-
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.LoginServiceConfiguration;
@@ -203,38 +198,14 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         new CollectionDAO(collectionName, documentID, newValuesJson).insert();
     }
 
-    //TODO: Do it in a async way
-    public static JSONObject deepMerge(JSONObject source, JSONObject target) throws JSONException {
-        Iterator<String> it = source.keys();
-        while (it.hasNext()) {
-            String key = it.next();
-            Object value = source.get(key);
-            if (!target.has(key)) {
-                // new value for "key":
-                target.put(key, value);
-            } else {
-                // existing value for "key" - recursively deep merge:
-                if (value instanceof JSONObject) {
-                    JSONObject valueJson = (JSONObject) value;
-                    deepMerge(valueJson, target.getJSONObject(key));
-                } else {
-                    target.put(key, value);
-                }
-            }
-        }
-        return target;
-    }
-
-
     @Override
     public void onDataChanged(String collectionName, String documentID, String updatedValuesJson, String removedValuesJson) {
 
         CollectionDAO dao = CollectionDAO.query(collectionName, documentID);
         if (dao != null) {
             try {
-                JSONObject merged = deepMerge(new JSONObject(dao.getNewValuesJson()), new JSONObject(updatedValuesJson));
-                new CollectionDAO(collectionName, documentID, merged.toString()).update();
-            } catch (JSONException e) {
+                dao.plusUpdatedValues(updatedValuesJson).lessUpdatedValues(removedValuesJson).update();
+            } catch (Exception e) {
                 e.printStackTrace();
                 Crashlytics.logException(e);
             }

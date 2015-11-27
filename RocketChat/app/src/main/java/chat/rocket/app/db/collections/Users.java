@@ -1,13 +1,18 @@
 package chat.rocket.app.db.collections;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+
+import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.utils.Util;
 
 /**
  * Created by julio on 24/11/15.
  */
 public class Users {
+
     public static final String COLLECTION_NAME = "users";
 
     private List<Email> emails;
@@ -122,5 +127,10 @@ public class Users {
 
     public static class Services {
         //TODO: understand what can come inside here
+    }
+
+    public static Users getUser(String userId) {
+        CollectionDAO dao = CollectionDAO.query(COLLECTION_NAME, userId);
+        return Util.GSON.fromJson(dao.getNewValuesJson(), Users.class);
     }
 }

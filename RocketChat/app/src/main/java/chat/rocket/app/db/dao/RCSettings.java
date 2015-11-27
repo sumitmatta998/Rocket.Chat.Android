@@ -3,7 +3,7 @@ package chat.rocket.app.db.dao;
 /**
  * Created by julio on 24/11/15.
  */
-public class RocketChatSettings {
+public class RCSettings {
     //TODO: the following are all available configs..need to find a way to read each one...
     /*collection\":\"rocketchat_settings\",\"id\":\"Accounts_RegistrationRequired\",\"fields\":{\"value\":true}}"]
  collection\":\"rocketchat_settings\",\"id\":\"Accounts_EmailVerification\",\"fields\":{\"value\":false}}"]

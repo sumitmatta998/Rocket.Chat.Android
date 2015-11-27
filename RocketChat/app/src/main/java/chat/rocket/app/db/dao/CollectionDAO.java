@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.v4.util.LruCache;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +14,7 @@ import java.util.List;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
+import chat.rocket.app.utils.Util;
 
 /**
  * Created by julio on 22/11/15.
@@ -133,4 +137,17 @@ public class CollectionDAO implements ContentValuables {
         DBManager.getInstance().delete(TABLE_NAME, COLUMN_COLLECTION_NAME + "=? AND " + COLUMN_DOCUMENT_ID + "=?",
                 new String[]{collectionName, documentID});
     }
+
+    public CollectionDAO plusUpdatedValues(String updatedValuesJson) throws JSONException {
+        newValuesJson = Util.deepMerge(new JSONObject(this.newValuesJson), new JSONObject(updatedValuesJson)).toString();
+        return this;
+    }
+
+    public CollectionDAO lessUpdatedValues(String removedValuesJson) throws JSONException {
+        if (removedValuesJson != null) {
+            newValuesJson = Util.deepRemove(new JSONObject(removedValuesJson), new JSONObject(this.newValuesJson)).toString();
+        }
+        return this;
+    }
+
 }

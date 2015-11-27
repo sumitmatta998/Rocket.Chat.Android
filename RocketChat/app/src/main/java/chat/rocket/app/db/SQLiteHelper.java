@@ -23,13 +23,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.db.util.TableBuilder;
 
 
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "SQLiteHelper";
     private static final String DATABASE_NAME = "data";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static SQLiteHelper mInstance;
 
     private SQLiteHelper(Context context) {
@@ -56,6 +57,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         try {
             db.execSQL(CollectionDAO.createTableString());
+            db.execSQL(TableBuilder.createIndexString(CollectionDAO.TABLE_NAME, CollectionDAO.COLUMN_COLLECTION_NAME));
+            db.execSQL(TableBuilder.createIndexString(CollectionDAO.TABLE_NAME, CollectionDAO.COLUMN_DOCUMENT_ID));
         } catch (Exception e) {
             e.printStackTrace();
         }

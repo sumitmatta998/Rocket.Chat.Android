@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import chat.rocket.app.R;
 import chat.rocket.app.RocketApp;
@@ -48,17 +47,5 @@ public class SplashActivity extends BaseActivity {
     public void onBackPressed() {
         super.onBackPressed();
         endMeteorConnection();
-    }
-
-    @Override
-    public void onConnect(boolean signedInAutomatically) {
-        super.onConnect(signedInAutomatically);
-    }
-
-    @Override
-    public void onException(Exception e) {
-        super.onException(e);
-        Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        onBackPressed();
     }
 }
