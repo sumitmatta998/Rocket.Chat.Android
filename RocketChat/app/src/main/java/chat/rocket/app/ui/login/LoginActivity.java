@@ -230,7 +230,9 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
             String password = data.getStringExtra(RegistrationActivity.PASSWORD);
             executeLogin(login, password);
         }
-        mTwitterButton.onActivityResult(requestCode, resultCode, data);
+        if (!TextUtils.isEmpty(BuildConfig.TWITTER_KEY)) {
+            mTwitterButton.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
 
