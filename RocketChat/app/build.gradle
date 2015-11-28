@@ -60,13 +60,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            resValue "string", "facebook_app_id", "12345678"
             buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
 
         }
         debug {
             minifyEnabled false
-            resValue "string", "facebook_app_id", "1685539698348386"
             buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
             //buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
 
@@ -103,7 +101,7 @@ dependencies {
     compile('com.twitter.sdk.android:twitter:1.10.0@aar') {
         transitive = true;
     }
-    compile ('com.github.ozodrukh:CircularReveal:1.1.1@aar') {
+    compile('com.github.ozodrukh:CircularReveal:1.1.1@aar') {
         transitive = true;
     }
 }

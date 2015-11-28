@@ -51,9 +51,4 @@ public class BaseActivity extends RxAppCompatActivity {
     protected void endMeteorConnection() {
         mMeteor.disconnect();
     }
-
-    protected void log(String str) {
-        Log.d("test", str);
-    }
-
 }

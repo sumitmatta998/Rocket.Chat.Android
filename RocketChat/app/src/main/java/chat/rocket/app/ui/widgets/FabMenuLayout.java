@@ -19,6 +19,8 @@ import io.codetail.widget.RevealFrameLayout;
 /**
  * Created by julio on 28/11/15.
  */
+
+//TODO: save state
 public class FabMenuLayout extends RevealFrameLayout {
     private FloatingActionButton mFab;
     private View mMenu;
@@ -28,7 +30,7 @@ public class FabMenuLayout extends RevealFrameLayout {
     private View mContentView;
 
     public interface MenuClickListener {
-        public void onMenuItemClick(int id);
+        void onMenuItemClick(int id);
     }
 
     private MenuClickListener mCallback;
