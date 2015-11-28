@@ -20,9 +20,13 @@ public class SplashActivity extends BaseActivity {
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Intent intent1 = new Intent(SplashActivity.this, LoginActivity.class);
-            startActivity(intent1);
-            finish();
+            if (RocketApp.ACTION_CONNECTED.equals(intent.getAction())) {
+                Intent intent1 = new Intent(SplashActivity.this, LoginActivity.class);
+                startActivity(intent1);
+            }
+            if (RocketApp.ACTION_DISCONNECTED.equals(intent.getAction())) {
+                finish();
+            }
         }
     };
 
@@ -32,6 +36,7 @@ public class SplashActivity extends BaseActivity {
         setContentView(R.layout.activity_splash);
         IntentFilter filter = new IntentFilter();
         filter.addAction(RocketApp.ACTION_CONNECTED);
+        filter.addAction(RocketApp.ACTION_DISCONNECTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
         startMeteorConnection();
 

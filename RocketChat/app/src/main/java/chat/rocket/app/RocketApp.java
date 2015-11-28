@@ -13,8 +13,8 @@ import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import chat.rocket.app.db.DBManager;
+import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.dao.CollectionDAO;
-import chat.rocket.app.db.dao.LoginServiceConfiguration;
 import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.Meteor;
 import chat.rocket.operations.meteor.MeteorCallback;
@@ -22,6 +22,8 @@ import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.Persistence;
 import chat.rocket.operations.meteor.SubscribeListener;
 import io.fabric.sdk.android.Fabric;
+
+import static chat.rocket.app.db.collections.LoginServiceConfiguration.LoginService.FACEBOOK;
 
 /**
  * Created by julio on 16/11/15.
@@ -77,7 +79,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         subs.loginServiceConfiguration(new SubscribeListener() {
             @Override
             public void onSuccess() {
-                String appId = LoginServiceConfiguration.query("facebook", "appId");
+                String appId = LoginServiceConfiguration.query(FACEBOOK);
                 if (!TextUtils.isEmpty(appId)) {
                     FacebookSdk.setApplicationId(appId);
                 }
@@ -93,7 +95,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             }
         });
 
-        subs.settings(new SubscribeListener() {
+        SubscribeListener listener = new SubscribeListener() {
             @Override
             public void onSuccess() {
             }
@@ -102,87 +104,25 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             public void onError(String error, String reason, String details) {
 
             }
-        });
-        subs.streamNotifyRoom(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-            }
+        };
 
-            @Override
-            public void onError(String error, String reason, String details) {
+        subs.settings(listener);
 
-            }
-        });
+        subs.streamNotifyRoom(listener);
 
-        subs.streamNotifyAll(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
+        subs.streamNotifyAll(listener);
 
-            }
+        subs.streamNotifyUser(listener);
 
-            @Override
-            public void onError(String error, String reason, String details) {
+        subs.roles(listener);
 
-            }
-        });
+        subs.permissions(listener);
 
-        subs.streamNotifyUser(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
+        subs.subscription(listener);
 
-            }
+        subs.userData(listener);
 
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
-        subs.roles(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
-
-        subs.permissions(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
-        subs.subscription(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
-
-        subs.activeUsers(new SubscribeListener() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
-        });
+        subs.activeUsers(listener);
 
     }
 

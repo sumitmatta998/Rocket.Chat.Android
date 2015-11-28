@@ -18,6 +18,10 @@ repositories {
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     maven { url 'https://maven.fabric.io/public' }
+    maven {
+        url "https://jitpack.io"
+    }
+
 }
 
 android {
@@ -97,6 +101,9 @@ dependencies {
         transitive = true;
     }
     compile('com.twitter.sdk.android:twitter:1.10.0@aar') {
+        transitive = true;
+    }
+    compile ('com.github.ozodrukh:CircularReveal:1.1.1@aar') {
         transitive = true;
     }
 }

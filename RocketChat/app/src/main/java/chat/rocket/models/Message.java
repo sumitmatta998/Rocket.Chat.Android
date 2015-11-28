@@ -16,7 +16,7 @@ public class Message {
     private String rid;
     private TimeStamp ts;
     @SerializedName("t")
-    private String type;
+    private MessageType type;
     @SerializedName("u")
     private UsernameId usernameId;
     private FileId file;
@@ -29,11 +29,11 @@ public class Message {
         return "id:" + id + ", msg:" + msg + "\nby:" + usernameId.getUsername();
     }
 
-    public String getType() {
+    public MessageType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(MessageType type) {
         this.type = type;
     }
 

@@ -304,7 +304,7 @@ public class RocketMethods {
     }
 
     //TODO: understand this message
- //   ["{\"msg\":\"method\",\"method\":\"registerUser\",\"params\":[{\"name\":\"Júlio Cesar Bueno Cotta\",\"emailOrUsername\":\"\",\"email\":\"juliocbcotta+6@gmail.com\",\"pass\":\"google\",\"confirm-pass\":\"google\"}],\"id\":\"14\"}"]
+ //["{\"msg\":\"method\",\"method\":\"registerUser\",\"params\":[{\"name\":\"Júlio Cesar Bueno Cotta\",\"emailOrUsername\":\"\",\"email\":\"juliocbcotta+6@gmail.com\",\"pass\":\"google\",\"confirm-pass\":\"google\"}],\"id\":\"14\"}"]
     //["{\"msg\":\"method\",\"method\":\"joinDefaultChannels\",\"params\":[],\"id\":\"4\"}"]
     //["{\"msg\":\"method\",\"method\":\"UserPresence:setDefaultStatus\",\"params\":[\"online\"],\"id\":\"96\"}"]
     //["{\"msg\":\"method\",\"method\":\"UserPresence:away\",\"params\":[],\"id\":\"1\"}"]

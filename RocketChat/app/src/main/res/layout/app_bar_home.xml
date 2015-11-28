@@ -1,112 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<chat.rocket.app.ui.widgets.FabMenuLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:id="@+id/FabMenu"
     tools:context=".ui.home.MainActivity">
 
-    <android.support.design.widget.AppBarLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-    </android.support.design.widget.AppBarLayout>
-
-    <RelativeLayout
+    <include
+        layout="@layout/content_home"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:layout_below="@+id/toolbar"
+        android:layout_marginTop="?attr/actionBarSize" />
 
-        <include
-            layout="@layout/content_home"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_toLeftOf="@+id/RightMenuButtons" />
-
-        <LinearLayout
-            android:id="@+id/RightMenuButtons"
-            android:layout_width="40dp"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/SettingsButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_settings_applications_24dp" />
-
-            <ImageButton
-                android:id="@+id/SearchButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_search_black_24dp" />
-
-            <ImageButton
-                android:id="@+id/MembersButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_people_24dp" />
-
-            <ImageButton
-                android:id="@+id/FilesButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_folder_24dp" />
-
-            <ImageButton
-                android:id="@+id/StaredButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_star_24dp" />
-
-            <ImageButton
-                android:id="@+id/PinnedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="0dp"
-                android:gravity="center"
-                android:paddingTop="12dp"
-                android:src="@drawable/ic_archive_24dp" />
-        </LinearLayout>
-    </RelativeLayout>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_input_add" />
-
-</android.support.design.widget.CoordinatorLayout>
+</chat.rocket.app.ui.widgets.FabMenuLayout>

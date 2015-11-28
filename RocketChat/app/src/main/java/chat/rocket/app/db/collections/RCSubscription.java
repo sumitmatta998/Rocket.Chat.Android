@@ -90,7 +90,7 @@ public class RCSubscription {
         this.unread = unread;
     }
 
-    public static List<RCSubscription> getRCSubscription() {
+    public static List<RCSubscription> getRCSubscriptions() {
         List<CollectionDAO> daos = CollectionDAO.query(COLLECTION_NAME);
         List<RCSubscription> subs = new ArrayList<>();
         for (CollectionDAO dao : daos) {
@@ -98,4 +98,5 @@ public class RCSubscription {
         }
         return subs;
     }
+
 }

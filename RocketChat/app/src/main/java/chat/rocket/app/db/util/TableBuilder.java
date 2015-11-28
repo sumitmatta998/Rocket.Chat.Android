@@ -6,10 +6,12 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import chat.rocket.app.BuildConfig;
+
 
 public class TableBuilder {
 
-    private static boolean PRINT_CREATION = true;
+    private static boolean PRINT_CREATION = BuildConfig.DEBUG;
 
     private static final String[] ACTIONS = {"NO ACTION", "RESTRICT", "SET NULL", "SET DEFAULT", "CASCADE"};
 

@@ -1,15 +1,10 @@
 package chat.rocket.app.ui.home;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -25,14 +20,18 @@ import chat.rocket.app.ui.home.menu.PinnedMessagesFragment;
 import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
 import chat.rocket.app.ui.home.menu.SearchFragment;
 import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
+import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.models.Message;
 import chat.rocket.models.Messages;
-import chat.rocket.models.TimeStamp;
+import chat.rocket.operations.RocketSubscriptions;
+import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 
-public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
     private ArrayAdapter<Message> mAdapter;
+    private ListView mListview;
+    private FabMenuLayout mFabMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +39,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mListview = (ListView) findViewById(R.id.ListView);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
+        mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
+        mFabMenu.setTopView(toolbar);
+        mFabMenu.setContentView(mListview);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.DrawerLayout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout,
@@ -55,26 +51,42 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         mDrawerLayout.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.LeftNavView);
-        navigationView.setNavigationItemSelectedListener(this);
-        ListView listview = (ListView) findViewById(R.id.RoomMsgsListView);
-        mAdapter = new ArrayAdapter<Message>(this, android.R.layout.simple_list_item_1, android.R.id.text1, new ArrayList<>());
-        listview.setAdapter(mAdapter);
-        List<RCSubscription> rcs = RCSubscription.getRCSubscription();
-        RCSubscription rcSubscription = rcs.get(0);
-        getSupportActionBar().setTitle("Chat Room: "+rcSubscription.getName());
+        RocketSubscriptions subs = new RocketSubscriptions();
 
-        mRocketMethods.loadHistory(rcSubscription.getRid(), null, 50, rcSubscription.getLs(), new LoadHistoryListener() {
+        subs.filteredUsers(new SubscribeListener() {
             @Override
-            public void onResult(Messages result) {
-                mAdapter.addAll(result.getMessages());
+            public void onSuccess() {
+
             }
 
             @Override
             public void onError(String error, String reason, String details) {
+
             }
         });
+        mAdapter = new ArrayAdapter<Message>(this, android.R.layout.simple_list_item_1, android.R.id.text1, new ArrayList<>());
+        mListview.setAdapter(mAdapter);
 
+        // TODO: The right thing to do here is do not try to enter any room,
+        // it may be the case where the query will fail because of the network speed
+        List<RCSubscription> rcs = RCSubscription.getRCSubscriptions();
+        if (!rcs.isEmpty()) {
+            RCSubscription rcSubscription = rcs.get(0);
+            getSupportActionBar().setTitle("Chat Room: " + rcSubscription.getName());
+
+            mRocketMethods.loadHistory(rcSubscription.getRid(), null, 50, rcSubscription.getLs(), new LoadHistoryListener() {
+                @Override
+                public void onResult(Messages result) {
+                    mAdapter.addAll(result.getMessages());
+                }
+
+                @Override
+                public void onError(String error, String reason, String details) {
+                }
+            });
+        } else {
+            //TODO: this is a new user, he does not belong to any room
+        }
         findViewById(R.id.SettingsButton).setOnClickListener(v -> {
             getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new RoomSettingsFragment()).commit();
             mDrawerLayout.openDrawer(Gravity.RIGHT);
@@ -109,34 +121,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     public void onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             mDrawerLayout.closeDrawer(Gravity.LEFT);
-        } else {
+        } else if(!mFabMenu.onBackPressed()){
             super.onBackPressed();
             endMeteorConnection();
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        if (item != null && item.getItemId() == android.R.id.home) {
-            if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
-                mDrawerLayout.closeDrawer(Gravity.LEFT);
-            } else {
-                mDrawerLayout.openDrawer(Gravity.LEFT);
-            }
-        }
-        return false;
-    }
-
 }

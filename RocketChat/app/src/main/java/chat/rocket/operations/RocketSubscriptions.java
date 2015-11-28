@@ -46,7 +46,7 @@ public class RocketSubscriptions {
         return new Subscription(mMeteor.subscribe("_roles", null, subscribeListener), mMeteor);
     }
 
-    public Subscription streaMmessages(SubscribeListener subscribeListener) {
+    public Subscription streamMessages(SubscribeListener subscribeListener) {
         return new Subscription(mMeteor.subscribe("stream-messages", null, subscribeListener), mMeteor);
     }
 

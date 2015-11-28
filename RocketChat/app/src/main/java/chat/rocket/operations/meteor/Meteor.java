@@ -1250,7 +1250,9 @@ public class Meteor {
             @Override
             public void run() {
                 try {
-                    mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
+                    if (mConnection != null) {
+                        mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
+                    }
                     mConnection = null;
                 } catch (Exception e) {
                     onExceptionPost(e);

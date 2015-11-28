@@ -44,7 +44,7 @@ public class CollectionDAO implements ContentValuables {
         tb.addColumn(COLUMN_FIELDS, TableBuilder.TEXT, false);
         tb.addColumn(COLUMN_UPDATED_AT, TableBuilder.TEXT, false);
 
-        tb.makeUnique(COLUMN_DOCUMENT_ID, TableBuilder.ON_CONFLICT_REPLACE);
+        tb.makeUnique(new String[]{COLUMN_COLLECTION_NAME, COLUMN_DOCUMENT_ID}, TableBuilder.ON_CONFLICT_REPLACE);
         return tb.toString();
     }
 
