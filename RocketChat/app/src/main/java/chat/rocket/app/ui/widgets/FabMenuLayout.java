@@ -27,6 +27,15 @@ public class FabMenuLayout extends RevealFrameLayout {
     private View mTopView;
     private View mContentView;
 
+    public interface MenuClickListener {
+        public void onMenuItemClick(int id);
+    }
+
+    private MenuClickListener mCallback;
+
+    public void setMenuClickListener(MenuClickListener listener) {
+        mCallback = listener;
+    }
 
     public void setTopView(View topView) {
         mTopView = topView;
@@ -65,6 +74,24 @@ public class FabMenuLayout extends RevealFrameLayout {
                 rotateFabToLess90();
             }
         });
+
+        OnClickListener listener = v -> {
+            if (mCallback != null) {
+                mCallback.onMenuItemClick(v.getId());
+            }
+        };
+
+        findViewById(R.id.SettingsButton).setOnClickListener(listener);
+
+        findViewById(R.id.SearchButton).setOnClickListener(listener);
+
+        findViewById(R.id.MembersButton).setOnClickListener(listener);
+
+        findViewById(R.id.FilesButton).setOnClickListener(listener);
+
+        findViewById(R.id.StaredButton).setOnClickListener(listener);
+
+        findViewById(R.id.PinnedButton).setOnClickListener(listener);
 
     }
 

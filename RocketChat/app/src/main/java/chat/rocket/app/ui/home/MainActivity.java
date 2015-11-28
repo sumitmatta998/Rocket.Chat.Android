@@ -27,7 +27,7 @@ import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClickListener {
     private DrawerLayout mDrawerLayout;
     private ArrayAdapter<Message> mAdapter;
     private ListView mListview;
@@ -44,6 +44,7 @@ public class MainActivity extends BaseActivity {
         mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
         mFabMenu.setTopView(toolbar);
         mFabMenu.setContentView(mListview);
+        mFabMenu.setMenuClickListener(this);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.DrawerLayout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout,
@@ -87,43 +88,50 @@ public class MainActivity extends BaseActivity {
         } else {
             //TODO: this is a new user, he does not belong to any room
         }
-        findViewById(R.id.SettingsButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new RoomSettingsFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
-        findViewById(R.id.SearchButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new SearchFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
-
-        findViewById(R.id.MembersButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new MembersListFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
-
-        findViewById(R.id.FilesButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new FileListFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
-
-        findViewById(R.id.StaredButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new StaredMessagesFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
-
-        findViewById(R.id.PinnedButton).setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new PinnedMessagesFragment()).commit();
-            mDrawerLayout.openDrawer(Gravity.RIGHT);
-        });
     }
 
     @Override
     public void onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             mDrawerLayout.closeDrawer(Gravity.LEFT);
-        } else if(!mFabMenu.onBackPressed()){
+        } else if (!mFabMenu.onBackPressed()) {
             super.onBackPressed();
             endMeteorConnection();
+        }
+    }
+
+    @Override
+    public void onMenuItemClick(int id) {
+        switch (id) {
+            case R.id.SettingsButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new RoomSettingsFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+            case R.id.SearchButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new SearchFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+
+            case R.id.MembersButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new MembersListFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+
+            case R.id.FilesButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new FileListFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+
+            case R.id.StaredButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new StaredMessagesFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+
+            case R.id.PinnedButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.RightNavView, new PinnedMessagesFragment()).commit();
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                break;
+
         }
     }
 }
