@@ -3,10 +3,12 @@ package chat.rocket.models;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by julio on 18/11/15.
  */
-public class TimeStamp {
+public class TimeStamp implements Serializable {
     @SerializedName("$date")
     private long date;
 

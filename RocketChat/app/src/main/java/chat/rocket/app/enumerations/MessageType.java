@@ -1,4 +1,4 @@
-package chat.rocket.models;
+package chat.rocket.app.enumerations;
 
 import com.google.gson.annotations.SerializedName;
 

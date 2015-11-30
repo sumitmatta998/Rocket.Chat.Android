@@ -12,6 +12,7 @@ import java.util.Iterator;
  */
 public class Util {
     public static Gson GSON = new Gson();
+
     //TODO: Do it in a async way
     public static JSONObject deepMerge(JSONObject source, JSONObject target) throws JSONException {
         Iterator<String> it = source.keys();
@@ -52,6 +53,4 @@ public class Util {
         }
         return target;
     }
-
-
 }

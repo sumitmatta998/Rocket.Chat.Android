@@ -1,6 +1,7 @@
 package chat.rocket.app.ui.widgets;
 
 import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
@@ -28,6 +29,7 @@ public class FabMenuLayout extends RevealFrameLayout {
     private ViewPropertyAnimator mFabAnimation;
     private View mTopView;
     private View mContentView;
+    private View mInnerMenu;
 
     public interface MenuClickListener {
         void onMenuItemClick(int id);
@@ -41,6 +43,20 @@ public class FabMenuLayout extends RevealFrameLayout {
 
     public void setTopView(View topView) {
         mTopView = topView;
+        mTopView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                mTopView.getViewTreeObserver().removeOnPreDrawListener(this);
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mMenu.getLayoutParams();
+                params.setMargins(params.leftMargin, (int) mTopView.getY(), params.rightMargin, params.bottomMargin);
+                mMenu.setLayoutParams(params);
+
+                params = (ViewGroup.MarginLayoutParams) mInnerMenu.getLayoutParams();
+                params.setMargins(params.leftMargin, mTopView.getHeight(), params.rightMargin, params.bottomMargin);
+                mInnerMenu.setLayoutParams(params);
+                return true;
+            }
+        });
     }
 
     public void setContentView(View contentView) {
@@ -65,6 +81,7 @@ public class FabMenuLayout extends RevealFrameLayout {
     private void init() {
         LayoutInflater.from(getContext()).inflate(R.layout.fab_menu_internal_layout, this, true);
         mMenu = findViewById(R.id.fabtoolbar);
+        mInnerMenu = findViewById(R.id.innerFabLayout);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
 
 
@@ -98,12 +115,15 @@ public class FabMenuLayout extends RevealFrameLayout {
     }
 
     private void rotateFabToLess90() {
-        float initialRadius = mFab.getHeight() / 2;
+        float initialRadius = 0;
         float finalRadius = getResources().getDisplayMetrics().heightPixels;
         ViewGroup.MarginLayoutParams param = ((ViewGroup.MarginLayoutParams) mFab.getLayoutParams());
         mFabAnimation = this.mFab.animate();
+        float scale = getResources().getDimension(R.dimen.fab_menu_width) / mFab.getWidth();
+
         mFabAnimation.rotation(-90)
-                .translationXBy(param.rightMargin)
+                .scaleY(scale).scaleX(scale)
+                .translationXBy(param.rightMargin + param.rightMargin * (1 - scale))
                 .setInterpolator(new AccelerateDecelerateInterpolator())
                 .setListener(new Animator.AnimatorListener() {
                     @Override
@@ -112,11 +132,10 @@ public class FabMenuLayout extends RevealFrameLayout {
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        // try to find the center of the fab
+                        sendFabToTop();
+
                         int cx = (int) (mFab.getX() + mFab.getWidth() / 2);
                         int cy = (int) (mFab.getY() + mFab.getHeight() / 2);
-
-                        sendFabToTop();
                         createReveal(cx, cy, initialRadius, finalRadius);
 
                     }
@@ -139,7 +158,7 @@ public class FabMenuLayout extends RevealFrameLayout {
             y = mTopView.getY() - mFab.getY();
         }
 
-        mFab.animate().scaleY(0.8f).scaleX(0.8f).translationY(y).setDuration(500).start();
+        mFab.animate().translationY(y).setDuration(500).start();
     }
 
     private void createReveal(int cx, int cy, float initialRadius, float finalRadius) {
@@ -217,7 +236,6 @@ public class FabMenuLayout extends RevealFrameLayout {
         reverseMenuAnimator.addListener(new SupportAnimator.AnimatorListener() {
             @Override
             public void onAnimationStart() {
-
             }
 
             @Override
@@ -228,12 +246,10 @@ public class FabMenuLayout extends RevealFrameLayout {
 
             @Override
             public void onAnimationCancel() {
-
             }
 
             @Override
             public void onAnimationRepeat() {
-
             }
         });
         reverseMenuAnimator.start();
@@ -244,7 +260,6 @@ public class FabMenuLayout extends RevealFrameLayout {
                 .setListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-
                     }
 
                     @Override
@@ -254,12 +269,10 @@ public class FabMenuLayout extends RevealFrameLayout {
 
                     @Override
                     public void onAnimationCancel(Animator animation) {
-
                     }
 
                     @Override
                     public void onAnimationRepeat(Animator animation) {
-
                     }
                 })
                 .start();
@@ -276,10 +289,18 @@ public class FabMenuLayout extends RevealFrameLayout {
                 @Override
                 public boolean onPreDraw() {
                     mMenu.getViewTreeObserver().removeOnPreDrawListener(this);
-                    //TODO: animate
                     ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
-                    params.setMargins(params.leftMargin, params.topMargin, mMenu.getWidth(), params.bottomMargin);
-                    mContentView.setLayoutParams(params);
+                    mContentView.setTag(params.rightMargin);
+                    ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, mMenu.getWidth());
+                    anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            int rightMargin = (int) animation.getAnimatedValue();
+                            params.setMargins(params.leftMargin, params.topMargin, rightMargin, params.bottomMargin);
+                            mContentView.setLayoutParams(params);
+                        }
+                    });
+                    anim.start();
                     return true;
                 }
             });
@@ -292,10 +313,17 @@ public class FabMenuLayout extends RevealFrameLayout {
                 @Override
                 public boolean onPreDraw() {
                     mMenu.getViewTreeObserver().removeOnPreDrawListener(this);
-                    //TODO: animate
                     ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
-                    params.setMargins(params.leftMargin, params.topMargin, 0, params.bottomMargin);
-                    mContentView.setLayoutParams(params);
+                    ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, (int) mContentView.getTag());
+                    anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            int rightMargin = (int) animation.getAnimatedValue();
+                            params.setMargins(params.leftMargin, params.topMargin, rightMargin, params.bottomMargin);
+                            mContentView.setLayoutParams(params);
+                        }
+                    });
+                    anim.start();
                     return true;
                 }
             });

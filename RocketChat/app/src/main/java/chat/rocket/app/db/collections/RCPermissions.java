@@ -1,4 +1,4 @@
-package chat.rocket.app.db.dao;
+package chat.rocket.app.db.collections;
 
 /**
  * Created by julio on 24/11/15.

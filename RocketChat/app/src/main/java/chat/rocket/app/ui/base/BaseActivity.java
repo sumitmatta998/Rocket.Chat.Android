@@ -1,12 +1,12 @@
 package chat.rocket.app.ui.base;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
+import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.methods.RocketMethods;
 
@@ -16,6 +16,7 @@ import chat.rocket.operations.methods.RocketMethods;
 public class BaseActivity extends RxAppCompatActivity {
     protected MeteorSingleton mMeteor;
     protected RocketMethods mRocketMethods;
+    protected RocketSubscriptions mRocketSubscriptions;
 
     @Override
     protected void onResume() {
@@ -40,6 +41,7 @@ public class BaseActivity extends RxAppCompatActivity {
         super.onCreate(savedInstanceState);
         mMeteor = MeteorSingleton.getInstance();
         mRocketMethods = new RocketMethods(mMeteor);
+        mRocketSubscriptions = new RocketSubscriptions();
     }
 
     protected void startMeteorConnection() {

@@ -1,18 +1,27 @@
 package chat.rocket.app.db.collections;
 
+import android.database.Cursor;
+import android.net.Uri;
+import android.support.v4.content.Loader;
+
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.rocket.app.db.DBContentProvider;
+import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.enumerations.ChannelType;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.TimeStamp;
 
 /**
  * Created by julio on 24/11/15.
  */
-public class RCSubscription {
+//TODO: Implements Parceable
+public class RCSubscription implements Serializable {
     public static final String COLLECTION_NAME = "rocketchat_subscription";
 
     private boolean alert;
@@ -22,11 +31,11 @@ public class RCSubscription {
     private String rid;
     //TODO: understand 't' field and make it an enum
     @SerializedName("t")
-    private String type;
+    private ChannelType type;
     private TimeStamp ts;
     private int unread;
 
-    public boolean isAlert() {
+    public boolean hasAlert() {
         return alert;
     }
 
@@ -66,11 +75,11 @@ public class RCSubscription {
         this.rid = rid;
     }
 
-    public String getType() {
+    public ChannelType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ChannelType type) {
         this.type = type;
     }
 
@@ -99,4 +108,9 @@ public class RCSubscription {
         return subs;
     }
 
+
+    public static Loader<Cursor> getLoader() {
+        Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(CollectionDAO.TABLE_NAME).build();
+        return DBManager.getInstance().getLoader(uri, null, CollectionDAO.COLUMN_COLLECTION_NAME + "=?", new String[]{RCSubscription.COLLECTION_NAME}, null);
+    }
 }

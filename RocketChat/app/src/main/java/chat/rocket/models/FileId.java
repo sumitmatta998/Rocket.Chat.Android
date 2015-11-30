@@ -9,6 +9,10 @@ public class FileId {
     @SerializedName("_id")
     private String id;
 
+    public FileId(String fileid) {
+        id = fileid;
+    }
+
     public String getId() {
         return id;
     }

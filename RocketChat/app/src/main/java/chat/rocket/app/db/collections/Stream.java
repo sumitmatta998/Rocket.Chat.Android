@@ -1,4 +1,6 @@
-package chat.rocket.app.db.dao;
+package chat.rocket.app.db.collections;
+
+import com.google.gson.JsonElement;
 
 import java.util.List;
 
@@ -6,7 +8,7 @@ import java.util.List;
  * Created by julio on 27/11/15.
  */
 public abstract class Stream {
-    protected List<String> args;
+    protected List<JsonElement> args;
     protected String userId;
     protected String subscriptionId;
 

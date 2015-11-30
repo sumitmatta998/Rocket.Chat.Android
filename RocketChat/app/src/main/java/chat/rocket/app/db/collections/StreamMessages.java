@@ -1,5 +1,6 @@
-package chat.rocket.app.db.dao;
+package chat.rocket.app.db.collections;
 
+import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.Message;
 
@@ -15,7 +16,7 @@ public class StreamMessages extends Stream {
     public void parseArgs() {
         if (args != null) {
             if (args.size() > 0) {
-                rid = args.get(0);
+                rid = args.get(0).getAsJsonPrimitive().getAsString();
             }
 
             if (args.size() > 1) {
@@ -24,7 +25,10 @@ public class StreamMessages extends Stream {
         }
     }
 
-    //{"msg":"added","collection":"stream-messages","id":"d7TNgB68PdyEuzb58","fields":
-    // {"args":["GENERAL",{"rid":"GENERAL","msg":"hi","ts":{"$date":1448592859773},
-    // "u":{"_id":"bNd8sHHAvuqrgj6SM","username":"lol-3"},"_id":"pBjgkaJrbM38Jr56Y"}],"userId":null,"subscriptionId":null}}
+    public void insert() {
+        if (msg == null) {
+            return;
+        }
+        new MessageDAO(msg).insert();
+    }
 }

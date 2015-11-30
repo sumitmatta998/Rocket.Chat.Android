@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import chat.rocket.app.BuildConfig;
+import chat.rocket.app.db.dao.CollectionDAO;
 
 
 public class DBContentProvider extends ContentProvider {
@@ -18,6 +19,7 @@ public class DBContentProvider extends ContentProvider {
     private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
     public static final String RAW_QUERY = "RAW_QUERY";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final String FILTER = "filter";
     private SQLiteHelper mSqlHelper;
 
 
@@ -85,8 +87,16 @@ public class DBContentProvider extends ContentProvider {
             if (id > 0) {
                 newUri = ContentUris.withAppendedId(uri, id);
                 db.setTransactionSuccessful();
+                if (values.containsKey(CollectionDAO.COLUMN_COLLECTION_NAME)) {
+                    Uri uri1 = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).
+                            appendQueryParameter(FILTER, values.getAsString(CollectionDAO.COLUMN_COLLECTION_NAME)).build();
+                    getContext().getContentResolver().notifyChange(uri1, null);
+                }
                 getContext().getContentResolver().notifyChange(uri, null);
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             db.endTransaction();
         }

@@ -24,6 +24,7 @@ import chat.rocket.operations.methods.listeners.LeaveRoomListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.LoginListener;
 import chat.rocket.operations.methods.listeners.OpenRoomListener;
+import chat.rocket.operations.methods.listeners.ReadMessagesListener;
 import chat.rocket.operations.methods.listeners.ResetAvatarListener;
 import chat.rocket.operations.methods.listeners.SaveRoomNameListener;
 import chat.rocket.operations.methods.listeners.SendConfirmationEmailListener;
@@ -155,7 +156,7 @@ public class RocketMethods {
         mMeteor.call("openRoom", new Object[]{rid}, listener);
     }
 
-    public void readMessages(String rid, ResultListener listener) {
+    public void readMessages(String rid, ReadMessagesListener listener) {
         mMeteor.call("readMessages", new Object[]{rid}, listener);
     }
 
@@ -303,8 +304,12 @@ public class RocketMethods {
 
     }
 
+    public void UserPresence(String status, ResultListener listener) {
+        mMeteor.call("UserPresence:" + status, null, listener);
+    }
+
     //TODO: understand this message
- //["{\"msg\":\"method\",\"method\":\"registerUser\",\"params\":[{\"name\":\"Júlio Cesar Bueno Cotta\",\"emailOrUsername\":\"\",\"email\":\"juliocbcotta+6@gmail.com\",\"pass\":\"google\",\"confirm-pass\":\"google\"}],\"id\":\"14\"}"]
+    //["{\"msg\":\"method\",\"method\":\"registerUser\",\"params\":[{\"name\":\"Júlio Cesar Bueno Cotta\",\"emailOrUsername\":\"\",\"email\":\"juliocbcotta+6@gmail.com\",\"pass\":\"google\",\"confirm-pass\":\"google\"}],\"id\":\"14\"}"]
     //["{\"msg\":\"method\",\"method\":\"joinDefaultChannels\",\"params\":[],\"id\":\"4\"}"]
     //["{\"msg\":\"method\",\"method\":\"UserPresence:setDefaultStatus\",\"params\":[\"online\"],\"id\":\"96\"}"]
     //["{\"msg\":\"method\",\"method\":\"UserPresence:away\",\"params\":[],\"id\":\"1\"}"]

@@ -22,8 +22,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.login.LoginActivity"
-            android:theme="@style/AppTheme" />
+            android:name=".ui.login.LoginActivity" />
         <activity
             android:name=".ui.home.MainActivity"
             android:label="@string/app_name"
@@ -31,7 +30,7 @@
         <activity
             android:name=".ui.registration.RegistrationActivity"
             android:label="@string/registration_activity_title" />
-
+        <activity android:name=".ui.chat.ChatActivity" />
         <activity
             android:name=".ui.login.password.ForgotPasswordActivity"
             android:label="@string/forgot_password_activity_title" />
@@ -41,10 +40,12 @@
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <provider
+            android:name=".db.DBContentProvider"
             android:authorities="${applicationId}.provider"
-            android:exported="false"
-            android:name=".db.DBContentProvider" />
+            android:grantUriPermissions="true"
+            android:exported="true" />
 
         <meta-data
             android:name="io.fabric.ApiKey"

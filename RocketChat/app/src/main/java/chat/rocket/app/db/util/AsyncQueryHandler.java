@@ -11,7 +11,7 @@ import android.os.Message;
 
 import java.lang.ref.WeakReference;
 
-public abstract class AsyncQueryHandler extends Handler {
+public abstract class AsyncQueryHandler<T> extends Handler {
     private static final int EVENT_ARG_QUERY = 1;
     private static final int EVENT_ARG_INSERT = 2;
     private static final int EVENT_ARG_UPDATE = 3;
@@ -59,7 +59,6 @@ public abstract class AsyncQueryHandler extends Handler {
      *                      the selection. The values will be bound as Strings.
      * @param orderBy       How to order the rows, formatted as an SQL ORDER BY clause
      *                      (excluding the ORDER BY itself). Passing null will use the
-     *                      default sort order, which may be unordered.
      */
     public void startQuery(int token, Object cookie, Uri uri, String[] projection, String selection, String[] selectionArgs, String orderBy) {
         // Use the token as what so cancelOperations works properly
@@ -191,9 +190,9 @@ public abstract class AsyncQueryHandler extends Handler {
      * @param token  the token to identify the query, passed in from
      *               {@link #startQuery}.
      * @param cookie the cookie object passed in from {@link #startQuery}.
-     * @param cursor The cursor holding the results from the query.
+     * @param object The cursor holding the results from the query.
      */
-    protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+    protected void onQueryComplete(int token, Object cookie, T object) {
     }
 
     /**
@@ -241,7 +240,7 @@ public abstract class AsyncQueryHandler extends Handler {
         // pass token back to caller on each callback.
         switch (event) {
             case EVENT_ARG_QUERY:
-                onQueryComplete(token, args.cookie, (Cursor) args.result);
+                onQueryComplete(token, args.cookie, (T) args.result);
                 break;
 
             case EVENT_ARG_INSERT:
@@ -261,7 +260,6 @@ public abstract class AsyncQueryHandler extends Handler {
                 break;
         }
     }
-
 
 
     protected static final class WorkerArgs {

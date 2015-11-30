@@ -3,6 +3,7 @@ package chat.rocket.app.ui.registration;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ public class RegistrationActivity extends BaseActivity {
                 Toast.makeText(this, "Invalid input, check your fields", Toast.LENGTH_LONG).show();
             }
         });
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     private boolean validadeFields(String name, String email, String password, String passwordConfirmation) {
@@ -72,5 +74,15 @@ public class RegistrationActivity extends BaseActivity {
         data.putExtra(PASSWORD, password);
         setResult(RESULT_OK, data);
         finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

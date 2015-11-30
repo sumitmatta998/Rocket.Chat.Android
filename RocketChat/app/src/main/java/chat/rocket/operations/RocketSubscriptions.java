@@ -1,5 +1,6 @@
 package chat.rocket.operations;
 
+import chat.rocket.app.enumerations.ChannelType;
 import chat.rocket.operations.meteor.Meteor;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.SubscribeListener;
@@ -66,20 +67,20 @@ public class RocketSubscriptions {
         return new Subscription(mMeteor.subscribe("admin-settings", null, subscribeListener), mMeteor);
     }
 
-    public Subscription room(String roomName, SubscribeListener subscribeListener) {
-        return new Subscription(mMeteor.subscribe("room", new Object[]{roomName}, subscribeListener), mMeteor);
+    public Subscription room(String roomName, ChannelType type, SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("room", new Object[]{type.type()+roomName}, subscribeListener), mMeteor);
     }
 
     public Subscription roomFiles(String rid, SubscribeListener subscribeListener) {
         return new Subscription(mMeteor.subscribe("roomFiles", new Object[]{rid}, subscribeListener), mMeteor);
     }
 
-    public Subscription fullUserData(String filter, String limit, SubscribeListener subscribeListener) {
+    public Subscription fullUserData(String filter, int limit, SubscribeListener subscribeListener) {
         return new Subscription(mMeteor.subscribe("fullUserData", new Object[]{filter, limit}, subscribeListener), mMeteor);
     }
 
     public Subscription filteredUsers(SubscribeListener subscribeListener) {
-        return new Subscription(mMeteor.subscribe("filteredUsers", null, subscribeListener), mMeteor);
+        return new Subscription(mMeteor.subscribe("filteredUsers", new Object[]{}, subscribeListener), mMeteor);
     }
 
     public Subscription channelAutocomplete(SubscribeListener subscribeListener) {

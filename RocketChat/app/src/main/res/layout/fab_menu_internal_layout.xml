@@ -16,44 +16,50 @@
 
     <LinearLayout
         android:id="@+id/fabtoolbar"
-        android:layout_width="?attr/actionBarSize"
+        android:layout_width="@dimen/fab_menu_width"
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/toolbar"
         android:layout_gravity="right"
         android:background="@color/accentColor"
         android:orientation="vertical"
-        android:paddingTop="?attr/actionBarSize"
         android:visibility="gone">
 
-        <ImageButton
-            android:id="@+id/SettingsButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_settings_applications_24dp" />
+        <LinearLayout
+            android:id="@+id/innerFabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/SearchButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_search_black_24dp" />
+            <ImageButton
+                android:id="@+id/SettingsButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_settings_24dp" />
 
-        <ImageView
-            android:id="@+id/MembersButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_people_24dp" />
+            <ImageButton
+                android:id="@+id/SearchButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_search_white_24dp" />
 
-        <ImageView
-            android:id="@+id/FilesButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_folder_24dp" />
+            <ImageButton
+                android:id="@+id/MembersButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_people_white_24dp" />
 
-        <ImageView
-            android:id="@+id/StaredButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_star_24dp" />
+            <ImageButton
+                android:id="@+id/FilesButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_folder_24dp" />
 
-        <ImageView
-            android:id="@+id/PinnedButton"
-            style="@style/AppTheme.RightMenuItem"
-            android:src="@drawable/ic_archive_24dp" />
+            <ImageButton
+                android:id="@+id/StaredButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_star_white_24dp" />
+
+            <ImageButton
+                android:id="@+id/PinnedButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_archive_24dp" />
+        </LinearLayout>
     </LinearLayout>
 </merge>

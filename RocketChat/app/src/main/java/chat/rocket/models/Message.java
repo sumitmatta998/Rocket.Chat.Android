@@ -5,28 +5,47 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import chat.rocket.app.enumerations.MessageType;
+
 /**
  * Created by julio on 19/11/15.
  */
 public class Message {
 
     @SerializedName("_id")
-    private String id;
-    private String msg;
-    private String rid;
-    private TimeStamp ts;
+    protected String id;
+    protected String msg;
+    protected String rid;
+    protected TimeStamp ts;
     @SerializedName("t")
-    private MessageType type;
+    protected MessageType type;
     @SerializedName("u")
-    private UsernameId usernameId;
-    private FileId file;
-    private List<UrlParts> urls;
-    private TimeStamp editedAt;
-    private EditedBy editedBy;
-    private double score;
+    protected UsernameId usernameId;
+    protected FileId file;
+    protected List<UrlParts> urls;
+    protected TimeStamp editedAt;
+    protected UsernameId editedBy;
+    protected double score;
+
+    public Message() {
+    }
+
+    public Message(String id, String msg, String rid, TimeStamp ts, MessageType type, UsernameId usernameId, FileId file, List<UrlParts> urls, TimeStamp editedAt, UsernameId editedBy, double score) {
+        this.id = id;
+        this.msg = msg;
+        this.rid = rid;
+        this.ts = ts;
+        this.type = type;
+        this.usernameId = usernameId;
+        this.file = file;
+        this.urls = urls;
+        this.editedAt = editedAt;
+        this.editedBy = editedBy;
+        this.score = score;
+    }
 
     public String toString() {
-        return "id:" + id + ", msg:" + msg + "\nby:" + usernameId.getUsername();
+        return "id:" + id + ", msg:" + msg;
     }
 
     public MessageType getType() {
@@ -53,11 +72,11 @@ public class Message {
         this.editedAt = editedAt;
     }
 
-    public EditedBy getEditedBy() {
+    public UsernameId getEditedBy() {
         return editedBy;
     }
 
-    public void setEditedBy(EditedBy editedBy) {
+    public void setEditedBy(UsernameId editedBy) {
         this.editedBy = editedBy;
     }
 

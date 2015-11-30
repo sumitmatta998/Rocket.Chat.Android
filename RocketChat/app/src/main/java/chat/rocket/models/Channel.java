@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import chat.rocket.app.enumerations.ChannelType;
+
 /**
  * Created by julio on 18/11/15.
  */
@@ -14,7 +16,7 @@ public class Channel {
     @SerializedName("ts")
     private TimeStamp ts;
     @SerializedName("t")
-    private MessageType type;
+    private ChannelType type;
     @SerializedName("name")
     private String name;
     @SerializedName("usernames")
@@ -35,11 +37,11 @@ public class Channel {
         this.ts = ts;
     }
 
-    public MessageType getType() {
+    public ChannelType getType() {
         return type;
     }
 
-    public void setType(MessageType type) {
+    public void setType(ChannelType type) {
         this.type = type;
     }
 

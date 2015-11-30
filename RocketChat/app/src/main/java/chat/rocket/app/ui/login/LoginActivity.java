@@ -38,7 +38,6 @@ import chat.rocket.app.ui.login.SetUserNameDialog.SetUsernameCallback;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
 import chat.rocket.models.Token;
-import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.RocketMethods;
 import chat.rocket.operations.methods.listeners.LogListener;
@@ -67,8 +66,7 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     };
 
     private void subscribeToUserDataAndStartMainActivity(String userId) {
-        RocketSubscriptions subs = new RocketSubscriptions();
-        subs.userData(new SubscribeListener() {
+        mRocketSubscriptions.userData(new SubscribeListener() {
             @Override
             public void onSuccess() {
                 Users user = Users.getUser(userId);

@@ -2,7 +2,6 @@ package chat.rocket.app.ui.home;
 
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.View;
@@ -17,7 +16,7 @@ import chat.rocket.app.ui.home.menu.SearchFragment;
 import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
 
-public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClickListener {
+public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, HomeFragment.OnContentReady {
     private DrawerLayout mDrawerLayout;
     private FabMenuLayout mFabMenu;
     private View mContentView;
@@ -26,23 +25,14 @@ public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+*/
         mContentView = findViewById(R.id.content_home);
-
         mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
-        mFabMenu.setTopView(toolbar);
-        mFabMenu.setContentView(mContentView);
-        mFabMenu.setMenuClickListener(this);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.DrawerLayout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-                toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        mDrawerLayout.setDrawerListener(toggle);
-
-        toggle.syncState();
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.content_home, new HomeFragment()).commit();
         }
@@ -50,8 +40,8 @@ public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
-            mDrawerLayout.closeDrawer(Gravity.LEFT);
+        if (mDrawerLayout.isDrawerOpen(Gravity.RIGHT)) {
+            mDrawerLayout.closeDrawer(Gravity.RIGHT);
         } else if (!mFabMenu.onBackPressed()) {
             super.onBackPressed();
             endMeteorConnection();
@@ -91,5 +81,12 @@ public class MainActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 mDrawerLayout.openDrawer(Gravity.RIGHT);
                 break;
         }
+    }
+
+    @Override
+    public void onTopViewReady(View topView) {
+        mFabMenu.setTopView(topView);
+        mFabMenu.setContentView(mContentView);
+        mFabMenu.setMenuClickListener(this);
     }
 }

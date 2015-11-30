@@ -14,7 +14,9 @@ import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.LoginServiceConfiguration;
+import chat.rocket.app.db.collections.StreamMessages;
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.utils.Util;
 import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.Meteor;
 import chat.rocket.operations.meteor.MeteorCallback;
@@ -135,7 +137,16 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
     @Override
     public void onDataAdded(String collectionName, String documentID, String newValuesJson) {
-        new CollectionDAO(collectionName, documentID, newValuesJson).insert();
+        switch (collectionName) {
+            case StreamMessages.COLLECTION_NAME:
+                StreamMessages msg = Util.GSON.fromJson(newValuesJson, StreamMessages.class);
+                msg.parseArgs();
+                msg.insert();
+                break;
+            default:
+                new CollectionDAO(collectionName, documentID, newValuesJson).insert();
+        }
+
     }
 
     @Override
