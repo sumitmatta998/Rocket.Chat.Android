@@ -21,4 +21,9 @@
     <string name="private_groups">Private Groups</string>
     <string name="favorites">Favorites</string>
     <string name="send">Send</string>
+    <string name="start_playing">Start playing</string>
+    <string name="stop_playing">Stop playing</string>
+    <string name="start_recording">Start recording</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="record_your_audio">Record your audio</string>
 </resources>

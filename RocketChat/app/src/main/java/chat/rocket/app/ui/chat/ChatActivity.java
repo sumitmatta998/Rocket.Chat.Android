@@ -1,5 +1,6 @@
 package chat.rocket.app.ui.chat;
 
+import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -13,6 +14,10 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 
 import chat.rocket.app.R;
@@ -22,6 +27,7 @@ import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
+import chat.rocket.app.ui.base.AudioRecordActivity;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.Message;
@@ -31,6 +37,7 @@ import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.ReadMessagesListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
+import io.fabric.sdk.android.services.network.HttpRequest;
 
 /**
  * Created by julio on 29/11/15.
@@ -38,6 +45,7 @@ import chat.rocket.operations.methods.listeners.SendMessageListener;
 public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
+    private static final int RECORD_AUDIO_REQUEST_CODE = 123;
     private RCSubscription mRcSubscription;
 
     private LoadHistoryListener mLoadHistoryListener = new LoadHistoryListener() {
@@ -227,7 +235,61 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("#" + mRcSubscription.getName());
 
+        findViewById(R.id.audioButton).setOnClickListener(v -> {
+            Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
+            startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
+        });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RECORD_AUDIO_REQUEST_CODE && resultCode == RESULT_OK) {
+            String filePath = data.getStringExtra(AudioRecordActivity.FILE_PATH);
+            File file = new File(filePath);
+           /* if (file.exists()) {
+                String str = decodeFile(file);
+                if (str != null) {
+                    String[] parts = str.split("(?<=\\G.{4})");
+                    processUpload(parts);
+                }
+            }*/
+        }
+    }
+
+    private void processUpload(long size, String[] parts) {
+        mRocketMethods.uploadFile(mMeteor.getUserId(), mRcSubscription.getRid(), parts, "audio/3gp", "3gp", size);
+    }
+
+    private String decodeFile(File file) {
+        String fileStr = null;
+        FileInputStream fis = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            baos = new ByteArrayOutputStream();
+            fis = new FileInputStream(file);
+
+            byte[] buf = new byte[1024];
+            int n;
+            while (-1 != (n = fis.read(buf))) {
+                baos.write(buf, 0, n);
+            }
+            fileStr = HttpRequest.Base64.encodeBytes(baos.toByteArray());
+
+        } catch (Exception e) {
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                    if (baos != null) {
+                        baos.close();
+                    }
+                } catch (IOException e) {
+                }
+            }
+        }
+        return fileStr;
     }
 
     @Override
@@ -274,7 +336,7 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
-                break;
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

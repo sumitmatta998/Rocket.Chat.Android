@@ -2,6 +2,7 @@ package chat.rocket.operations.methods;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import chat.rocket.models.Message;
 import chat.rocket.models.TimeStamp;
@@ -306,6 +307,35 @@ public class RocketMethods {
 
     public void UserPresence(String status, ResultListener listener) {
         mMeteor.call("UserPresence:" + status, null, listener);
+    }
+
+    public void uploadFile(String userId, String rid, String[] strings, String type, String extension, long size) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", "Audio Record");
+        data.put("size", size);
+        data.put("type", type);
+        data.put("rid", rid);
+        data.put("complete", false);
+        data.put("uploading", true);
+        data.put("store", "rocketchat_uploads");
+        data.put("extension", extension);
+        data.put("userId", userId);
+
+        mMeteor.insert("rocketchat_uploads", new Random(System.currentTimeMillis()).nextInt() + "", data, new ResultListener() {
+            @Override
+            public void onSuccess(String result) {
+
+            }
+
+            @Override
+            public void onError(String error, String reason, String details) {
+
+            }
+        });
+    }
+
+    public void ufsWrite(){
+        //mMeteor.call("ufsWrite", );
     }
 
     //TODO: understand this message

@@ -676,6 +676,18 @@ public class Meteor {
      * Insert given data into the specified collection
      *
      * @param collectionName the collection to insert the data into
+     * @param data           the data to insert
+     * @param randomSeed     an arbitrary seed for pseudo-random generators or `null`
+     * @param listener       the listener to call on success/error
+     */
+    public void insert(final String collectionName, String randomSeed, final Map<String, Object> data, final ResultListener listener) {
+        callWithSeed("/" + collectionName + "/insert", randomSeed, new Object[]{data}, listener);
+    }
+
+    /**
+     * Insert given data into the specified collection
+     *
+     * @param collectionName the collection to insert the data into
      * @param query          the query to select the document to update with
      * @param data           the list of keys and values that should be set
      */
