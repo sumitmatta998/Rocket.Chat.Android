@@ -11,7 +11,7 @@ public class LogListener implements ResultListener {
     private String tag;
 
     public LogListener() {
-        tag = "LogListener";
+        tag = getClass().getSuperclass().getSimpleName();
     }
 
     public LogListener(String tag) {

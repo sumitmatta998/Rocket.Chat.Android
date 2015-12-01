@@ -16,7 +16,6 @@ import chat.rocket.models.Message;
  * Created by julio on 29/11/15.
  */
 public class MessagesAdapter extends CursorAdapter {
-    private LruCache<String, Message> mCache = new LruCache<>(10);
 
     public MessagesAdapter(Context context) {
         super(context, null, false);

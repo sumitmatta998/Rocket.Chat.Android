@@ -65,8 +65,8 @@ android {
         }
         debug {
             minifyEnabled false
-            buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
-            //buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+            //buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
+            buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
 
         }
     }

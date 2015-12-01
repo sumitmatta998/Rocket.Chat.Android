@@ -25,6 +25,7 @@ import android.util.Log;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.EditedByDAO;
 import chat.rocket.app.db.dao.MessageDAO;
+import chat.rocket.app.db.dao.RCSubscriptionDAO;
 import chat.rocket.app.db.dao.UrlPartsDAO;
 import chat.rocket.app.db.dao.UsernameIdDAO;
 import chat.rocket.app.db.util.TableBuilder;
@@ -34,7 +35,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "SQLiteHelper";
     private static final String DATABASE_NAME = "data";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 2;
     private static SQLiteHelper mInstance;
 
     private SQLiteHelper(Context context) {
@@ -69,6 +70,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             db.execSQL(MessageDAO.createTableString());
             db.execSQL(UrlPartsDAO.createTableString());
             db.execSQL(UsernameIdDAO.createTableString());
+            db.execSQL(RCSubscriptionDAO.createTableString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,6 +81,11 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
         db.execSQL("DROP TABLE IF EXISTS " + CollectionDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + EditedByDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + MessageDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + UrlPartsDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + UsernameIdDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + RCSubscriptionDAO.TABLE_NAME);
         onCreate(db);
     }
 }

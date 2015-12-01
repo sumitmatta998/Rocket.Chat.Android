@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.FacebookSdk;
@@ -15,8 +16,11 @@ import com.twitter.sdk.android.core.TwitterAuthConfig;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.collections.StreamMessages;
+import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.db.dao.RCSubscriptionDAO;
 import chat.rocket.app.utils.Util;
+import chat.rocket.models.NotifyRoom;
 import chat.rocket.operations.RocketSubscriptions;
 import chat.rocket.operations.meteor.Meteor;
 import chat.rocket.operations.meteor.MeteorCallback;
@@ -141,17 +145,47 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             case StreamMessages.COLLECTION_NAME:
                 StreamMessages msg = Util.GSON.fromJson(newValuesJson, StreamMessages.class);
                 msg.parseArgs();
+
                 msg.insert();
+                break;
+            case RCSubscriptionDAO.COLLECTION_NAME:
+                RCSubscriptionDAO sub = Util.GSON.fromJson(newValuesJson, RCSubscriptionDAO.class);
+                sub.insert(documentID);
+                break;
+            case StreamNotifyRoom.COLLECTION_NAME:
+                StreamNotifyRoom stream = Util.GSON.fromJson(newValuesJson, StreamNotifyRoom.class);
+                stream.parseArgs();
+                NotifyRoom noti = stream.getNotifyRoom();
+                if (noti != null) {
+                    String rid = noti.getRid();
+                    if (!TextUtils.isEmpty(rid)) {
+                        Intent intent = new Intent();
+                        intent.setAction(StreamNotifyRoom.COLLECTION_NAME + rid);
+                        intent.putExtra(StreamNotifyRoom.COLLECTION_NAME, stream.getNotifyRoom());
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                    }
+                } else {
+                    Log.d("debug", newValuesJson);
+                }
                 break;
             default:
                 new CollectionDAO(collectionName, documentID, newValuesJson).insert();
         }
-
     }
 
     @Override
     public void onDataChanged(String collectionName, String documentID, String updatedValuesJson, String removedValuesJson) {
+        //TODO: update the data that changed in the right table
+        // I think I will not be able to use GSON, probable manual parsing and updating only the needed fields
 
+        switch (collectionName) {
+            case RCSubscriptionDAO.COLLECTION_NAME:
+                RCSubscriptionDAO rcSub = RCSubscriptionDAO.get(documentID);
+                if (rcSub != null) {
+                    rcSub.update(documentID, updatedValuesJson);
+                }
+                return;
+        }
         CollectionDAO dao = CollectionDAO.query(collectionName, documentID);
         if (dao != null) {
             try {

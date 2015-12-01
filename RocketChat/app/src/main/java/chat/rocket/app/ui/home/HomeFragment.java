@@ -19,6 +19,8 @@ import chat.rocket.app.ui.home.tabs.RCSubscriptionsTabFragment;
 import chat.rocket.app.ui.home.tabs.DirectMessagesTabFragment;
 import chat.rocket.app.ui.home.tabs.FavoritesTabFragment;
 import chat.rocket.app.ui.home.tabs.PrivateGroupsTabFragment;
+import chat.rocket.operations.Subscription;
+import chat.rocket.operations.meteor.SubscribeListener;
 
 /**
  * Created by julio on 28/11/15.

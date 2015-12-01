@@ -1,14 +1,14 @@
 package chat.rocket.app.ui.chat;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.database.ContentObserver;
+import android.content.IntentFilter;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.util.Log;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -18,20 +18,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import chat.rocket.app.R;
-import chat.rocket.app.db.DBContentProvider;
-import chat.rocket.app.db.collections.RCSubscription;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
-import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
 import chat.rocket.app.ui.base.AudioRecordActivity;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.app.utils.Util;
 import chat.rocket.models.Message;
 import chat.rocket.models.Messages;
+import chat.rocket.models.NotifyRoom;
+import chat.rocket.models.RCSubscription;
 import chat.rocket.operations.Subscription;
 import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
@@ -77,18 +74,6 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         }
     };
 
-    private Subscription mFullUserDataSubscription;
-    private SubscribeListener mFullUserDataListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
     private ReadMessagesListener mReadMessagesListener = new ReadMessagesListener() {
         @Override
         public void onResult(Integer result) {
@@ -100,80 +85,29 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
 
         }
     };
-    private SubscribeListener mFilteredUsersListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
-    private Subscription mFilteredUsersSubscription;
-    private SubscribeListener mChannelAutocompleteListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
-    private Subscription mChannelAutocompleteSubscription;
-    private SubscribeListener mStreamMessagesListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
-    private Subscription mStreamMessagesSubscription;
     private ListView mListView;
     private MessagesAdapter mAdapter;
     private SendMessageListener mSendMessageListener = new SendMessageListener() {
         @Override
         public void onResult(Message result) {
-            Log.d("tste", result.toString());
             mSendEditText.getText().clear();
             mListView.smoothScrollToPosition(mAdapter.getCount() - 1);
         }
 
         @Override
         public void onError(String error, String reason, String details) {
-            Log.d("tste", error);
         }
     };
     private EditText mSendEditText;
-    private Handler mHandler = new Handler();
-    private ContentObserver mObserver = new ContentObserver(mHandler) {
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
-        public void onChange(boolean selfChange) {
-            onChange(selfChange, null);
-        }
-
-        @Override
-        public void onChange(boolean selfChange, Uri uri) {
-            List<CollectionDAO> daos = CollectionDAO.query(StreamNotifyRoom.COLLECTION_NAME);
-            if (daos != null && !daos.isEmpty()) {
-                for (CollectionDAO dao : daos) {
-                    StreamNotifyRoom notif = Util.GSON.fromJson(dao.getNewValuesJson(), StreamNotifyRoom.class);
-                    notif.parseArgs();
-                    if (mRcSubscription.getRid().equals(notif.getRid())) {
-                        if (notif.isHappening()) {
-                            getSupportActionBar().setSubtitle(notif.getUsername() + " is " + notif.getAction());
-                        } else {
-                            getSupportActionBar().setSubtitle("");
-                        }
-                        break;
-                    }
+        public void onReceive(Context context, Intent intent) {
+            NotifyRoom notif = (NotifyRoom) intent.getSerializableExtra(StreamNotifyRoom.COLLECTION_NAME);
+            if (mRcSubscription.getRid().equals(notif.getRid())) {
+                if (notif.isHappening()) {
+                    getSupportActionBar().setSubtitle(notif.getUsername() + " is " + notif.getAction());
+                } else {
+                    getSupportActionBar().setSubtitle("");
                 }
             }
         }
@@ -182,19 +116,15 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
     @Override
     protected void onResume() {
         super.onResume();
-        Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(CollectionDAO.TABLE_NAME).
-                appendQueryParameter(DBContentProvider.FILTER, StreamNotifyRoom.COLLECTION_NAME).build();
-        getContentResolver().
-                registerContentObserver(
-                        uri,
-                        true,
-                        mObserver);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(StreamNotifyRoom.COLLECTION_NAME + mRcSubscription.getRid());
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        getContentResolver().unregisterContentObserver(mObserver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -216,24 +146,17 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
 
         mAdapter = new MessagesAdapter(this);
         mListView.setAdapter(mAdapter);
-
-        mRocketMethods.loadHistory(mRcSubscription.getRid(), null, mRcSubscription.getUnread(), mRcSubscription.getLs(), mLoadHistoryListener);
-
-        //TODO: why that number 1 ??? is it the current number of users in the room?
-        mFullUserDataSubscription = mRocketSubscriptions.fullUserData(null, 1, mFullUserDataListener);
-
+        int unread = mRcSubscription.getUnread();
+        if (unread == 0) {
+            unread = 25;
+        }
+        mRocketMethods.loadHistory(mRcSubscription.getRid(), null, unread, mRcSubscription.getLs(), mLoadHistoryListener);
         mRoomSubscription = mRocketSubscriptions.room(mRcSubscription.getName(), mRcSubscription.getType(), mRoomListener);
-
-        mFilteredUsersSubscription = mRocketSubscriptions.filteredUsers(mFilteredUsersListener);
-
-        mChannelAutocompleteSubscription = mRocketSubscriptions.channelAutocomplete(mChannelAutocompleteListener);
-
-        mStreamMessagesSubscription = mRocketSubscriptions.streamMessages(mStreamMessagesListener);
 
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("#" + mRcSubscription.getName());
+        getSupportActionBar().setTitle(mRcSubscription.getFormattedName());
 
         findViewById(R.id.audioButton).setOnClickListener(v -> {
             Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
@@ -297,22 +220,6 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         super.onDestroy();
         if (mRoomSubscription != null) {
             mRoomSubscription.unSubscribe();
-        }
-
-        if (mFullUserDataSubscription != null) {
-            mFullUserDataSubscription.unSubscribe();
-        }
-
-        if (mFilteredUsersSubscription != null) {
-            mFilteredUsersSubscription.unSubscribe();
-        }
-
-        if (mChannelAutocompleteSubscription != null) {
-            mChannelAutocompleteSubscription.unSubscribe();
-        }
-
-        if (mStreamMessagesSubscription != null) {
-            mStreamMessagesSubscription.unSubscribe();
         }
     }
 

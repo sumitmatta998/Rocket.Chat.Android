@@ -124,6 +124,6 @@ public class MessageDAO extends Message implements ContentValuables {
 
     public static Loader<Cursor> getLoader(String rid) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(MessageDAO.TABLE_NAME).build();
-        return DBManager.getInstance().getLoader(uri, null, MessageDAO.COLUMN_RID + "=?", new String[]{rid}, null);
+        return DBManager.getInstance().getLoader(uri, null, MessageDAO.COLUMN_RID + "=?", new String[]{rid}, COLUMN_TS+" ASC");
     }
 }
