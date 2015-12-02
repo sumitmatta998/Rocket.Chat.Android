@@ -23,6 +23,7 @@ public class SplashActivity extends BaseActivity {
             if (RocketApp.ACTION_CONNECTED.equals(intent.getAction())) {
                 Intent intent1 = new Intent(SplashActivity.this, LoginActivity.class);
                 startActivity(intent1);
+                finish();
             }
             if (RocketApp.ACTION_DISCONNECTED.equals(intent.getAction())) {
                 finish();

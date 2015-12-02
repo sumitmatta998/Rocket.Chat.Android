@@ -18,7 +18,10 @@ import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.collections.StreamMessages;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.db.dao.RCSubscriptionDAO;
+import chat.rocket.app.enumerations.LoginService;
+import chat.rocket.app.enumerations.NotifyActionType;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.operations.RocketSubscriptions;
@@ -29,7 +32,6 @@ import chat.rocket.operations.meteor.Persistence;
 import chat.rocket.operations.meteor.SubscribeListener;
 import io.fabric.sdk.android.Fabric;
 
-import static chat.rocket.app.db.collections.LoginServiceConfiguration.LoginService.FACEBOOK;
 
 /**
  * Created by julio on 16/11/15.
@@ -85,7 +87,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         subs.loginServiceConfiguration(new SubscribeListener() {
             @Override
             public void onSuccess() {
-                String appId = LoginServiceConfiguration.query(FACEBOOK);
+                String appId = LoginServiceConfiguration.query(LoginService.FACEBOOK);
                 if (!TextUtils.isEmpty(appId)) {
                     FacebookSdk.setApplicationId(appId);
                 }
@@ -145,7 +147,6 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             case StreamMessages.COLLECTION_NAME:
                 StreamMessages msg = Util.GSON.fromJson(newValuesJson, StreamMessages.class);
                 msg.parseArgs();
-
                 msg.insert();
                 break;
             case RCSubscriptionDAO.COLLECTION_NAME:
@@ -155,14 +156,12 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             case StreamNotifyRoom.COLLECTION_NAME:
                 StreamNotifyRoom stream = Util.GSON.fromJson(newValuesJson, StreamNotifyRoom.class);
                 stream.parseArgs();
-                NotifyRoom noti = stream.getNotifyRoom();
-                if (noti != null) {
-                    String rid = noti.getRid();
-                    if (!TextUtils.isEmpty(rid)) {
-                        Intent intent = new Intent();
-                        intent.setAction(StreamNotifyRoom.COLLECTION_NAME + rid);
-                        intent.putExtra(StreamNotifyRoom.COLLECTION_NAME, stream.getNotifyRoom());
-                        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                NotifyRoom notifyRoom = stream.getNotifyRoom();
+                if (notifyRoom != null) {
+                    if (NotifyActionType.TYPING.equals(notifyRoom.getAction())) {
+                        executeRoomNotification(notifyRoom);
+                    } else if (NotifyActionType.DELETE_MESSAGE.equals(notifyRoom.getAction())) {
+                        MessageDAO.remove(notifyRoom.getId());
                     }
                 } else {
                     Log.d("debug", newValuesJson);
@@ -171,6 +170,17 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             default:
                 new CollectionDAO(collectionName, documentID, newValuesJson).insert();
         }
+    }
+
+    private void executeRoomNotification(NotifyRoom notifyRoom) {
+        String rid = notifyRoom.getRid();
+        if (!TextUtils.isEmpty(rid)) {
+            Intent intent = new Intent();
+            intent.setAction(StreamNotifyRoom.COLLECTION_NAME + rid);
+            intent.putExtra(StreamNotifyRoom.COLLECTION_NAME, notifyRoom);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }
+
     }
 
     @Override
@@ -185,6 +195,8 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
                     rcSub.update(documentID, updatedValuesJson);
                 }
                 return;
+            case StreamNotifyRoom.COLLECTION_NAME:
+                break;
         }
         CollectionDAO dao = CollectionDAO.query(collectionName, documentID);
         if (dao != null) {

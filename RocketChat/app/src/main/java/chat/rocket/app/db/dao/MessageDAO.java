@@ -25,7 +25,7 @@ import static chat.rocket.app.db.util.TableBuilder.TEXT;
 public class MessageDAO extends Message implements ContentValuables {
     public static final String TABLE_NAME = "messages";
     public static final String COLUMN_ID = "_id";
-    public static final String COLUMN_MSG_ID = "msg_id";
+    public static final String COLUMN_DOCUMENT_ID = "document_id";
     public static final String COLUMN_MSG = "msg";
     public static final String COLUMN_RID = "rid";
     public static final String COLUMN_TS = "ts";
@@ -35,7 +35,7 @@ public class MessageDAO extends Message implements ContentValuables {
     public static final String COLUMN_SCORE = "score";
 
     public MessageDAO(Message msg) {
-        super(msg.getId(), msg.getMsg(), msg.getRid(),
+        super(msg.getDocumentID(), msg.getMsg(), msg.getRid(),
                 msg.getTs(), msg.getType(), msg.getUsernameId(),
                 msg.getFile(), msg.getUrls(), msg.getEditedAt(),
                 msg.getEditedBy(), msg.getScore());
@@ -45,7 +45,7 @@ public class MessageDAO extends Message implements ContentValuables {
     public static String createTableString() throws Exception {
         TableBuilder tb = new TableBuilder(TABLE_NAME);
         tb.setPrimaryKey(COLUMN_ID, tb.INTEGER, true);
-        tb.addColumn(COLUMN_MSG_ID, TEXT, true);
+        tb.addColumn(COLUMN_DOCUMENT_ID, TEXT, true);
         tb.addColumn(COLUMN_MSG, TEXT, false);
         tb.addColumn(COLUMN_RID, TEXT, false);
         tb.addColumn(COLUMN_TS, INTEGER, false);
@@ -53,7 +53,7 @@ public class MessageDAO extends Message implements ContentValuables {
         tb.addColumn(COLUMN_TYPE, TEXT, false);
         tb.addColumn(COLUMN_FILE_ID, TEXT, false);
         tb.addColumn(COLUMN_SCORE, TEXT, false);
-        tb.makeUnique(new String[]{COLUMN_MSG_ID, COLUMN_RID}, ON_CONFLICT_REPLACE);
+        tb.makeUnique(new String[]{COLUMN_DOCUMENT_ID, COLUMN_RID}, ON_CONFLICT_REPLACE);
         return tb.toString();
     }
 
@@ -61,7 +61,7 @@ public class MessageDAO extends Message implements ContentValuables {
     @Override
     public ContentValues toContentValues() {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_MSG_ID, id);
+        values.put(COLUMN_DOCUMENT_ID, documentID);
         values.put(COLUMN_MSG, msg);
         values.put(COLUMN_RID, rid);
         values.put(COLUMN_TS, ts != null ? ts.getDate() : 0);
@@ -74,7 +74,7 @@ public class MessageDAO extends Message implements ContentValuables {
     }
 
     public MessageDAO(Cursor cursor) {
-        id = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID));
+        documentID = cursor.getString(cursor.getColumnIndex(COLUMN_DOCUMENT_ID));
         msg = cursor.getString(cursor.getColumnIndex(COLUMN_MSG));
         rid = cursor.getString(cursor.getColumnIndex(COLUMN_RID));
 
@@ -88,21 +88,21 @@ public class MessageDAO extends Message implements ContentValuables {
             type = MessageType.valueOf(t);
         }
 
-        usernameId = UsernameIdDAO.get(id);
+        usernameId = UsernameIdDAO.get(documentID);
 
         String fileId = cursor.getString(cursor.getColumnIndex(COLUMN_FILE_ID));
         if (fileId != null) {
             file = new FileId(fileId);
         }
 
-        urls = UrlPartsDAO.get(id);
+        urls = UrlPartsDAO.get(documentID);
 
         time = cursor.getLong(cursor.getColumnIndex(COLUMN_EDITED_AT));
         if (time != 0) {
             editedAt = new TimeStamp(time);
         }
 
-        editedBy = EditedByDAO.get(id);
+        editedBy = EditedByDAO.get(documentID);
 
         score = cursor.getLong(cursor.getColumnIndex(COLUMN_SCORE));
 
@@ -110,20 +110,24 @@ public class MessageDAO extends Message implements ContentValuables {
 
     public void insert() {
         DBManager.getInstance().insert(TABLE_NAME, this);
-        new UsernameIdDAO(id, usernameId).insert();
+        new UsernameIdDAO(documentID, usernameId).insert();
         if (editedBy != null) {
-            new EditedByDAO(id, editedBy).insert();
+            new EditedByDAO(documentID, editedBy).insert();
         }
         if (urls != null) {
             for (UrlParts url : urls) {
                 //TODO: bulkInsert
-                new UrlPartsDAO(id, url).insert();
+                new UrlPartsDAO(documentID, url).insert();
             }
         }
     }
 
     public static Loader<Cursor> getLoader(String rid) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(MessageDAO.TABLE_NAME).build();
-        return DBManager.getInstance().getLoader(uri, null, MessageDAO.COLUMN_RID + "=?", new String[]{rid}, COLUMN_TS+" ASC");
+        return DBManager.getInstance().getLoader(uri, null, MessageDAO.COLUMN_RID + "=?", new String[]{rid}, COLUMN_TS + " ASC");
+    }
+
+    public static void remove(String documentID) {
+        DBManager.getInstance().delete(TABLE_NAME, COLUMN_DOCUMENT_ID + "=?", new String[]{documentID});
     }
 }

@@ -81,7 +81,7 @@ public class RocketMethods {
     public void deleteMessage(String id, DeleteMessageListener listener) {
         Map<String, String> data = new HashMap<>();
         data.put("_id", id);
-        mMeteor.call("deleteMessage", new Object[]{data}, listener);
+        mMeteor.call("DELETE_MESSAGE", new Object[]{data}, listener);
     }
 
     public void deleteUser(String userId, ResultListener listener) {

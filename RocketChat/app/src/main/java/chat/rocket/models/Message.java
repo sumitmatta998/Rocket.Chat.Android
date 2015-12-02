@@ -13,7 +13,7 @@ import chat.rocket.app.enumerations.MessageType;
 public class Message {
 
     @SerializedName("_id")
-    protected String id;
+    protected String documentID;
     protected String msg;
     protected String rid;
     protected TimeStamp ts;
@@ -30,8 +30,16 @@ public class Message {
     public Message() {
     }
 
-    public Message(String id, String msg, String rid, TimeStamp ts, MessageType type, UsernameId usernameId, FileId file, List<UrlParts> urls, TimeStamp editedAt, UsernameId editedBy, double score) {
-        this.id = id;
+    public String getDocumentID() {
+        return documentID;
+    }
+
+    public void setDocumentID(String documentID) {
+        this.documentID = documentID;
+    }
+
+    public Message(String documentID, String msg, String rid, TimeStamp ts, MessageType type, UsernameId usernameId, FileId file, List<UrlParts> urls, TimeStamp editedAt, UsernameId editedBy, double score) {
+        this.documentID = documentID;
         this.msg = msg;
         this.rid = rid;
         this.ts = ts;
@@ -45,7 +53,7 @@ public class Message {
     }
 
     public String toString() {
-        return "id:" + id + ", msg:" + msg;
+        return "documentID:" + documentID + ", msg:" + msg;
     }
 
     public MessageType getType() {
@@ -78,14 +86,6 @@ public class Message {
 
     public void setEditedBy(UsernameId editedBy) {
         this.editedBy = editedBy;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getMsg() {

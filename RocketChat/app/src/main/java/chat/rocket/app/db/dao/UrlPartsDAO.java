@@ -16,7 +16,6 @@ import chat.rocket.app.db.util.TableBuilder;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.UrlParts;
 
-import static chat.rocket.app.db.util.TableBuilder.CASCADE;
 import static chat.rocket.app.db.util.TableBuilder.TEXT;
 
 /**
@@ -25,15 +24,15 @@ import static chat.rocket.app.db.util.TableBuilder.TEXT;
 public class UrlPartsDAO extends UrlParts implements ContentValuables {
     public static final String TABLE_NAME = "url_parts";
 
-    public static final String COLUMN_MSG_ID = "msg_id";
+    public static final String COLUMN_DOCUMENT_ID = "msg_id";
     public static final String COLUMN_URL = "url";
     public static final String COLUMN_META = "meta";
     public static final String COLUMN_HEADERS = "headers";
     public static final String COLUMN_PARSED_URL = "parsed_url";
-    private final String msgId;
+    private final String documentID;
 
     public UrlPartsDAO(Cursor cursor) {
-        msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID));
+        documentID = cursor.getString(cursor.getColumnIndex(COLUMN_DOCUMENT_ID));
         url = cursor.getString(cursor.getColumnIndex(COLUMN_URL));
 
         String m = cursor.getString(cursor.getColumnIndex(COLUMN_META));
@@ -57,23 +56,22 @@ public class UrlPartsDAO extends UrlParts implements ContentValuables {
 
     public static String createTableString() throws Exception {
         TableBuilder tb = new TableBuilder(TABLE_NAME);
-        tb.setPrimaryKey(COLUMN_MSG_ID, TEXT, false);
-        tb.addColumn(COLUMN_URL, TEXT, true);
+        tb.setPrimaryKey(new String[]{COLUMN_URL, COLUMN_DOCUMENT_ID}, new String[]{TEXT, TEXT});
         tb.addColumn(COLUMN_HEADERS, TEXT, false);
         tb.addColumn(COLUMN_META, TEXT, false);
         tb.addColumn(COLUMN_PARSED_URL, TEXT, false);
-        //tb.addFK(COLUMN_MSG_ID, TEXT, MessageDAO.TABLE_NAME, MessageDAO.COLUMN_MSG_ID, CASCADE, CASCADE);
+        //tb.addFK(COLUMN_DOCUMENT_ID, TEXT, MessageDAO.TABLE_NAME, MessageDAO.COLUMN_DOCUMENT_ID, CASCADE, CASCADE);
         return tb.toString();
     }
 
-    public UrlPartsDAO(String msgId, UrlParts urls) {
+    public UrlPartsDAO(String documentID, UrlParts urls) {
         super(urls.getUrl(), urls.getMeta(), urls.getHeaders(), urls.getParsedUrl());
-        this.msgId = msgId;
+        this.documentID = documentID;
     }
 
-    public static List<UrlParts> get(String msgId) {
+    public static List<UrlParts> get(String documentID) {
         List<UrlParts> list = new ArrayList<>();
-        Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_MSG_ID + "=?", new String[]{msgId});
+        Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_DOCUMENT_ID + "=?", new String[]{documentID});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
@@ -92,7 +90,7 @@ public class UrlPartsDAO extends UrlParts implements ContentValuables {
     @Override
     public ContentValues toContentValues() {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_MSG_ID, msgId);
+        values.put(COLUMN_DOCUMENT_ID, documentID);
         values.put(COLUMN_URL, url);
         values.put(COLUMN_META, Util.GSON.toJson(meta));
         values.put(COLUMN_HEADERS, Util.GSON.toJson(headers));

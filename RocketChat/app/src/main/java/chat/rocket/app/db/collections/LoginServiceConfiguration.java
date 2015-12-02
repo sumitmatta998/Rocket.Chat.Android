@@ -7,22 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.enumerations.LoginService;
 import chat.rocket.app.utils.Util;
 
 /**
  * Created by julio on 24/11/15.
  */
 public class LoginServiceConfiguration {
-    public enum LoginService {
-        GOOGLE("clientId"), GITLAB("clientId"), GITHUB("clientId"), TWITTER("consumerKey"), METEOR_DEVELOPER("meteor-developer"), FACEBOOK("appId"), LINKEDIN("clientId");
-        public String identifier;
-
-        LoginService(String identifier) {
-            this.identifier = identifier;
-        }
-
-    }
-
 
     private static final String collectionName = "meteor_accounts_loginServiceConfiguration";
 
