@@ -305,8 +305,21 @@ public class RocketMethods {
 
     }
 
-    public void UserPresence(String status, ResultListener listener) {
-        mMeteor.call("UserPresence:" + status, null, listener);
+    public void setPushUser(ResultListener listener) {
+        mMeteor.call("raix:push-setuser", new Object[]{mMeteor.getUserId()}, listener);
+    }
+
+    public void updatePush(String token, ResultListener listener) {
+        Map<String, String> map = new HashMap<>();
+        map.put("token", token);
+        map.put("appName", "main");
+        map.put("userId", mMeteor.getUserId());
+        // TODO: still does not work
+        mMeteor.call("raix:push-update", new Object[]{map}, listener);
+    }
+
+    public void UserPresence(String status, String presence, ResultListener listener) {
+        mMeteor.call("UserPresence:" + status, new Object[]{presence}, listener);
     }
 
     public void uploadFile(String userId, String rid, String[] strings, String type, String extension, long size) {
@@ -334,9 +347,10 @@ public class RocketMethods {
         });
     }
 
-    public void ufsWrite(){
+    public void ufsWrite() {
         //mMeteor.call("ufsWrite", );
     }
+
 
     //TODO: understand this message
     //["{\"msg\":\"method\",\"method\":\"registerUser\",\"params\":[{\"name\":\"Júlio Cesar Bueno Cotta\",\"emailOrUsername\":\"\",\"email\":\"juliocbcotta+6@gmail.com\",\"pass\":\"google\",\"confirm-pass\":\"google\"}],\"id\":\"14\"}"]

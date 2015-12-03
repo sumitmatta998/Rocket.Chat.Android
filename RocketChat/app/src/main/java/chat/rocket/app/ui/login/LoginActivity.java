@@ -1,7 +1,9 @@
 package chat.rocket.app.ui.login;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
@@ -31,7 +33,10 @@ import java.util.List;
 import chat.rocket.app.BuildConfig;
 import chat.rocket.app.R;
 import chat.rocket.app.db.DBManager;
+import chat.rocket.app.db.collections.RCSettings;
 import chat.rocket.app.db.collections.Users;
+import chat.rocket.app.gcm.PushKeys;
+import chat.rocket.app.gcm.RocketRegistrationIntentService;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.SetUserNameDialog.SetUsernameCallback;
@@ -212,6 +217,20 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     }
 
     private void startMainActivity() {
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean sent = sharedPreferences.getBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false);
+        String enabled = RCSettings.getValueFor(RCSettings.Pushenable);
+
+        if (!sent && (!TextUtils.isEmpty(enabled) && "true".equalsIgnoreCase(enabled))) {
+            String senderId = RCSettings.getValueFor(RCSettings.Pushgcmprojectnumber);
+            if (senderId != null) {
+                sharedPreferences.edit().putString(PushKeys.SENDER_ID, senderId).apply();
+                Intent intent = new Intent(this, RocketRegistrationIntentService.class);
+                startService(intent);
+            }
+        }
+
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
