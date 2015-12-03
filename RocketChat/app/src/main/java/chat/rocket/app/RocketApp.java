@@ -84,6 +84,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
     public void onConnect(boolean signedInAutomatically) {
 
         RocketSubscriptions subs = new RocketSubscriptions();
+
         subs.loginServiceConfiguration(new SubscribeListener() {
             @Override
             public void onSuccess() {
@@ -126,11 +127,17 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
         subs.permissions(listener);
 
+        subs.streamMessages(listener);
+
+        subs.meteorAutoupdateClientVersions(listener);
+
         subs.subscription(listener);
 
         subs.userData(listener);
 
         subs.activeUsers(listener);
+
+        subs.adminSettings(listener);
 
     }
 

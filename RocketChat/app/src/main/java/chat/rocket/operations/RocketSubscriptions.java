@@ -68,7 +68,7 @@ public class RocketSubscriptions {
     }
 
     public Subscription room(String roomName, ChannelType type, SubscribeListener subscribeListener) {
-        return new Subscription(mMeteor.subscribe("room", new Object[]{type.type()+roomName}, subscribeListener), mMeteor);
+        return new Subscription(mMeteor.subscribe("room", new Object[]{type.type() + roomName}, subscribeListener), mMeteor);
     }
 
     public Subscription roomFiles(String rid, SubscribeListener subscribeListener) {
@@ -95,11 +95,7 @@ public class RocketSubscriptions {
         return new Subscription(mMeteor.subscribe("pinnedMessages", new Object[]{rid}, subscribeListener), mMeteor);
     }
 
-    public Subscription s1(SubscribeListener subscribeListener) {
-        return new Subscription(mMeteor.subscribe("", null, subscribeListener), mMeteor);
+    public Subscription meteorAutoupdateClientVersions(SubscribeListener subscribeListener) {
+        return new Subscription(mMeteor.subscribe("meteor_autoupdate_clientVersions", null, subscribeListener), mMeteor);
     }
-
-    //TODO: understand this
-    //["{\"msg\":\"sub\",\"id\":\"5izQcN75JtrnL79Rz\",\"name\":\"meteor_autoupdate_clientVersions\",\"params\":[]}"]
-
 }
