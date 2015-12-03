@@ -310,11 +310,13 @@ public class RocketMethods {
     }
 
     public void updatePush(String token, ResultListener listener) {
-        Map<String, String> map = new HashMap<>();
-        map.put("token", token);
+        Map<String, Object> map = new HashMap<>();
+        final Map<String, Object> tokenData = new HashMap<String, Object>();
+        tokenData.put("gcm", token);
+        map.put("token", tokenData);
         map.put("appName", "main");
         map.put("userId", mMeteor.getUserId());
-        // TODO: still does not work
+
         mMeteor.call("raix:push-update", new Object[]{map}, listener);
     }
 
