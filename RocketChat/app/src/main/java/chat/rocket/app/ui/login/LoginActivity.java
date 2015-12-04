@@ -219,10 +219,9 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     private void startMainActivity() {
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean sent = sharedPreferences.getBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false);
         String enabled = RCSettings.getValueFor(RCSettings.Pushenable);
 
-        if (!sent && (!TextUtils.isEmpty(enabled) && "true".equalsIgnoreCase(enabled))) {
+        if ((!TextUtils.isEmpty(enabled) && "true".equalsIgnoreCase(enabled))) {
             String senderId = RCSettings.getValueFor(RCSettings.Pushgcmprojectnumber);
             if (senderId != null) {
                 sharedPreferences.edit().putString(PushKeys.SENDER_ID, senderId).apply();

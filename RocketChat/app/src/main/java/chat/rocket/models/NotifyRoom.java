@@ -16,6 +16,8 @@ public class NotifyRoom implements Serializable {
     protected boolean happening;
     private String id;
 
+    private RtcMedia media;
+
     public String getRid() {
         return rid;
     }
@@ -54,5 +56,13 @@ public class NotifyRoom implements Serializable {
 
     public String getId() {
         return id;
+    }
+
+    public RtcMedia getMedia() {
+        return media;
+    }
+
+    public void setMedia(RtcMedia media) {
+        this.media = media;
     }
 }

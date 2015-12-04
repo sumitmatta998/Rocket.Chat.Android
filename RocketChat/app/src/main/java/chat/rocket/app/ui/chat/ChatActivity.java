@@ -25,6 +25,13 @@ import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
 import chat.rocket.app.ui.base.AudioRecordActivity;
 import chat.rocket.app.ui.base.BaseActivity;
+import chat.rocket.app.ui.home.menu.FileListFragment;
+import chat.rocket.app.ui.home.menu.MembersListFragment;
+import chat.rocket.app.ui.home.menu.PinnedMessagesFragment;
+import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
+import chat.rocket.app.ui.home.menu.SearchFragment;
+import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
+import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.models.Message;
 import chat.rocket.models.Messages;
 import chat.rocket.models.NotifyRoom;
@@ -39,12 +46,12 @@ import io.fabric.sdk.android.services.network.HttpRequest;
 /**
  * Created by julio on 29/11/15.
  */
-public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
     private RCSubscription mRcSubscription;
-
+    private FabMenuLayout mFabMenu;
     private LoadHistoryListener mLoadHistoryListener = new LoadHistoryListener() {
         @Override
         public void onResult(Messages result) {
@@ -132,10 +139,12 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         mRcSubscription = (RCSubscription) getIntent().getSerializableExtra(RC_SUB);
-
+        mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
         mListView = (ListView) findViewById(R.id.listview);
         mSendEditText = (EditText) findViewById(R.id.submitEditText);
-
+        mFabMenu.setTopView(mListView);
+        mFabMenu.setContentView(mListView);
+        mFabMenu.setMenuClickListener(this);
         mSendEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 mRocketMethods.sendMessage(mRcSubscription.getRid(), mSendEditText.getText().toString(), mSendMessageListener);
@@ -157,11 +166,6 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(mRcSubscription.getFormattedName());
-
-        findViewById(R.id.audioButton).setOnClickListener(v -> {
-            Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
-            startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
-        });
 
     }
 
@@ -247,4 +251,39 @@ public class ChatActivity extends BaseActivity implements LoaderManager.LoaderCa
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+    @Override
+    public void onBackPressed() {
+        if (!mFabMenu.onBackPressed()) {
+            super.onBackPressed();
+        }
+    }
+/*Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
+        startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);*/
+
+    @Override
+    public void onMenuItemClick(int id) {
+        switch (id) {
+            case R.id.SettingsButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new RoomSettingsFragment()).commit();
+                break;
+            case R.id.SearchButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new SearchFragment()).commit();
+                break;
+            case R.id.MembersButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new MembersListFragment()).commit();
+                break;
+            case R.id.FilesButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new FileListFragment()).commit();
+                break;
+            case R.id.StaredButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new StaredMessagesFragment()).commit();
+                break;
+            case R.id.PinnedButton:
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new PinnedMessagesFragment()).commit();
+                break;
+        }
+    }
+
 }
