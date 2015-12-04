@@ -34,11 +34,16 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-        def Properties twitterProperties = new Properties()
-        twitterProperties.load(new FileInputStream(file('twitter.properties')));
-        //TODO: If file does not exist, allow the build to continue and set empty values
-        buildConfigField "String", "TWITTER_KEY", twitterProperties['TWITTER_KEY']
-        buildConfigField "String", "TWITTER_SECRET", twitterProperties['TWITTER_SECRET']
+        def twitterFile = file('twitter.properties')
+        if (twitterFile.exists()) {
+            def Properties twitterProperties = new Properties()
+            twitterProperties.load(new FileInputStream(twitterFile));
+            buildConfigField "String", "TWITTER_KEY", twitterProperties['TWITTER_KEY']
+            buildConfigField "String", "TWITTER_SECRET", twitterProperties['TWITTER_SECRET']
+        }else{
+            buildConfigField "String", "TWITTER_KEY", '""'
+            buildConfigField "String", "TWITTER_SECRET", '""'
+        }
     }
     signingConfigs {
         debug {
