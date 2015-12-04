@@ -7,7 +7,11 @@ public enum NotifyActionType {
     TYPING("typing"),
 
     @SerializedName("deleteMessage")
-    DELETE_MESSAGE("deleteMessage");
+    DELETE_MESSAGE("deleteMessage"),
+
+    @SerializedName("webrtc")
+    WEB_RTC("webrtc");
+
 
     private String type;
 

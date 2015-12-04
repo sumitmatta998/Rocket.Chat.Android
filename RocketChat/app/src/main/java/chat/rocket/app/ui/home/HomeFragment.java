@@ -15,12 +15,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import chat.rocket.app.R;
-import chat.rocket.app.ui.home.tabs.RCSubscriptionsTabFragment;
 import chat.rocket.app.ui.home.tabs.DirectMessagesTabFragment;
 import chat.rocket.app.ui.home.tabs.FavoritesTabFragment;
 import chat.rocket.app.ui.home.tabs.PrivateGroupsTabFragment;
-import chat.rocket.operations.Subscription;
-import chat.rocket.operations.meteor.SubscribeListener;
+import chat.rocket.app.ui.home.tabs.RCSubscriptionsTabFragment;
 
 /**
  * Created by julio on 28/11/15.
@@ -28,11 +26,6 @@ import chat.rocket.operations.meteor.SubscribeListener;
 public class HomeFragment extends Fragment {
     private TabLayout mTabLayout;
     private FragmentAdapter mAdapter;
-    private OnContentReady mCallback;
-
-    public interface OnContentReady {
-        public void onTopViewReady(View topview);
-    }
 
     @Nullable
     @Override
@@ -52,7 +45,6 @@ public class HomeFragment extends Fragment {
         for (int i = 0; i < mTabLayout.getTabCount(); i++) {
             mTabLayout.getTabAt(i).setIcon(mAdapter.getIcon(i));
         }
-        mCallback.onTopViewReady(mTabLayout);
     }
 
     enum TABS {
@@ -95,11 +87,5 @@ public class HomeFragment extends Fragment {
         public int getIcon(int position) {
             return mTabs[position].icon;
         }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mCallback = (OnContentReady) context;
     }
 }

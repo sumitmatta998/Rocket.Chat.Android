@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<chat.rocket.app.ui.widgets.FabMenuLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/FabMenu"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,35 +9,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/editContainer"
-        android:layout_alignParentTop="true"
+        android:layout_marginBottom="50dp"
         android:stackFromBottom="true"
         android:transcriptMode="normal" />
 
-    <LinearLayout
-        android:id="@+id/editContainer"
+
+    <EditText
+        android:id="@+id/submitEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="40dp"
+        android:hint="@string/message"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:maxLines="1"
+        android:singleLine="true" />
 
-        <EditText
-            android:id="@+id/submitEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:hint="Message"
-            android:imeOptions="actionDone"
-            android:inputType="text"
-            android:maxLines="1"
-            android:singleLine="true" />
-
-        <ImageButton
-            android:id="@+id/audioButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_mic_black_24dp" />
-    </LinearLayout>
-</RelativeLayout>
+</chat.rocket.app.ui.widgets.FabMenuLayout>

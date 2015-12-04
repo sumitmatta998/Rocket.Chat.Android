@@ -49,10 +49,6 @@ public class RocketRegistrationIntentService extends IntentService {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         try {
 
-            // Initially this call goes out to the network to retrieve the token, subsequent calls
-            // are local.
-            // R.string.gcm_defaultSenderId (the Sender ID) is typically derived from google-services.json.
-            // See https://developers.google.com/cloud-messaging/android/start for details on this file.
             InstanceID instanceID = InstanceID.getInstance(this);
             String senderId = mSharedPreferences.getString(PushKeys.SENDER_ID, null);
             String token = instanceID.getToken(senderId,
@@ -60,7 +56,6 @@ public class RocketRegistrationIntentService extends IntentService {
 
             sendRegistrationToServer(token);
 
-            // Subscribe to topic channels
             subscribeTopics(token);
 
 
@@ -68,8 +63,6 @@ public class RocketRegistrationIntentService extends IntentService {
 
         } catch (Exception e) {
             Log.d(TAG, "Failed to complete token refresh", e);
-            // If an exception happens while fetching the new token or updating our registration data
-            // on a third-party server, this ensures that we'll attempt the update at a later time.
             mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false).apply();
         }
     }
@@ -93,9 +86,6 @@ public class RocketRegistrationIntentService extends IntentService {
                     @Override
                     public void onSuccess(String result) {
                         super.onSuccess(result);
-                        // You should store a boolean that indicates whether the generated token has been
-                        // sent to your server. If the boolean is false, send the token to your server,
-                        // otherwise your server should have already received the token.
                         mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, true).apply();
                     }
 

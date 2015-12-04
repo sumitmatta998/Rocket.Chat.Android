@@ -311,9 +311,11 @@ public class RocketMethods {
 
     public void updatePush(String token, ResultListener listener) {
         Map<String, Object> map = new HashMap<>();
-        final Map<String, Object> tokenData = new HashMap<String, Object>();
-        tokenData.put("gcm", token);
-        map.put("token", tokenData);
+
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("gcm", token);
+
+        map.put("token", tokenMap);
         map.put("appName", "main");
         map.put("userId", mMeteor.getUserId());
 
