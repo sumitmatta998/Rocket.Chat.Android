@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -38,6 +39,7 @@ import chat.rocket.models.NotifyRoom;
 import chat.rocket.models.RCSubscription;
 import chat.rocket.operations.Subscription;
 import chat.rocket.operations.meteor.SubscribeListener;
+import chat.rocket.operations.methods.listeners.FileUploadListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
 import chat.rocket.operations.methods.listeners.ReadMessagesListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
@@ -175,18 +177,33 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         if (requestCode == RECORD_AUDIO_REQUEST_CODE && resultCode == RESULT_OK) {
             String filePath = data.getStringExtra(AudioRecordActivity.FILE_PATH);
             File file = new File(filePath);
-           /* if (file.exists()) {
+            if (file.exists()) {
                 String str = decodeFile(file);
                 if (str != null) {
                     String[] parts = str.split("(?<=\\G.{4})");
-                    processUpload(parts);
+                    processUpload(file.getName(), file.length(), parts);
                 }
-            }*/
+            }
         }
     }
 
-    private void processUpload(long size, String[] parts) {
-        mRocketMethods.uploadFile(mMeteor.getUserId(), mRcSubscription.getRid(), parts, "audio/3gp", "3gp", size);
+    private void processUpload(String name, long size, String[] parts) {
+        mRocketMethods.uploadFile(mMeteor.getUserId(), mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size, new FileUploadListener() {
+            @Override
+            public void onProgress(float progress) {
+                Log.d("upload - onProgress", progress + "%");
+            }
+
+            @Override
+            public void onSuccess(String result) {
+                Log.d("upload - onSuccess", result);
+            }
+
+            @Override
+            public void onError(String error, String reason, String details) {
+                Log.d("upload - onError", error + ", " + reason + ", " + details);
+            }
+        });
     }
 
     private String decodeFile(File file) {
@@ -259,8 +276,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             super.onBackPressed();
         }
     }
-/*Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
-        startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);*/
 
     @Override
     public void onMenuItemClick(int id) {
@@ -283,6 +298,12 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             case R.id.PinnedButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new PinnedMessagesFragment()).commit();
                 break;
+            case R.id.MicButton:
+                //TODO: migrate code to fragment and insert below the submitEditText..
+                Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
+                startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
+                break;
+
         }
     }
 

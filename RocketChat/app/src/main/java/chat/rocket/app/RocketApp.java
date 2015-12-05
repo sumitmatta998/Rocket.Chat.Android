@@ -13,6 +13,8 @@ import com.facebook.FacebookSdk;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import java.util.concurrent.TimeUnit;
+
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.collections.StreamMessages;
@@ -31,6 +33,9 @@ import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.Persistence;
 import chat.rocket.operations.meteor.SubscribeListener;
 import io.fabric.sdk.android.Fabric;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 /**
@@ -88,14 +93,20 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         subs.loginServiceConfiguration(new SubscribeListener() {
             @Override
             public void onSuccess() {
-                String appId = LoginServiceConfiguration.query(LoginService.FACEBOOK);
-                if (!TextUtils.isEmpty(appId)) {
-                    FacebookSdk.setApplicationId(appId);
-                }
-                Intent intent = new Intent();
-                intent.setAction(ACTION_CONNECTED);
-                intent.putExtra(LOGGED_KEY, signedInAutomatically);
-                LocalBroadcastManager.getInstance(RocketApp.this).sendBroadcast(intent);
+                /*TODO: The database insertion is async, so before we query it, we need to wait some time
+                  need to change this approach to something more reliable, like a ContentObserver to the LoginServiceConfiguration collection*/
+                Observable.defer(() -> Observable.just("")).delay(500, TimeUnit.MICROSECONDS)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread()).subscribe(s -> {
+                    String appId = LoginServiceConfiguration.query(LoginService.FACEBOOK);
+                    if (!TextUtils.isEmpty(appId)) {
+                        FacebookSdk.setApplicationId(appId);
+                    }
+                    Intent intent = new Intent();
+                    intent.setAction(ACTION_CONNECTED);
+                    intent.putExtra(LOGGED_KEY, signedInAutomatically);
+                    LocalBroadcastManager.getInstance(RocketApp.this).sendBroadcast(intent);
+                });
             }
 
             @Override

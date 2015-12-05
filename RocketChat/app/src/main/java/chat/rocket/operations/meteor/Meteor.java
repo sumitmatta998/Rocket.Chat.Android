@@ -63,9 +63,9 @@ public class Meteor {
      */
     private static final int RECONNECT_ATTEMPTS_MAX = 5;
     /**
-     * Instance of Jackson library's ObjectMapper that converts between JSON and Java objects (POJOs)
+     * Instance of Gson library's ObjectMapper that converts between JSON and Java objects (POJOs)
      */
-    private static final Gson mObjectMapper = new Gson();
+    private static final Gson sGson = new Gson();
 
     private final Handler mMainThreadHandler;
     /**
@@ -84,7 +84,7 @@ public class Meteor {
     /**
      * Messages that couldn't be dispatched yet and thus had to be queued
      */
-    private final Persistence persistence;
+    private final Persistence mPersistence;
     private String mServerUri;
     private String mDdpVersion;
     /**
@@ -136,7 +136,7 @@ public class Meteor {
         }
         mMainThreadHandler = new Handler(Looper.getMainLooper());
         // save the context reference
-        this.persistence = persistence;
+        this.mPersistence = persistence;
 
         mWebSocketObserver = new WebSocketListener() {
             @Override
@@ -401,7 +401,7 @@ public class Meteor {
      */
     private String toJson(Object obj) {
         try {
-            return mObjectMapper.toJson(obj);
+            return sGson.toJson(obj);
         } catch (Exception e) {
             onExceptionPost(e);
             return null;
@@ -1077,7 +1077,7 @@ public class Meteor {
      * @param token the login token to save
      */
     private void saveLoginToken(final String token) {
-        persistence.putString(Preferences.Keys.LOGIN_TOKEN, token);
+        mPersistence.putString(Preferences.Keys.LOGIN_TOKEN, token);
     }
 
     /**
@@ -1086,7 +1086,7 @@ public class Meteor {
      * @return the last login token or `null`
      */
     private String getLoginToken() {
-        return persistence.getString(Preferences.Keys.LOGIN_TOKEN);
+        return mPersistence.getString(Preferences.Keys.LOGIN_TOKEN);
     }
 
 

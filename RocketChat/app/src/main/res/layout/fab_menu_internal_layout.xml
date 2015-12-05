@@ -69,6 +69,11 @@
                 android:id="@+id/PinnedButton"
                 style="@style/AppTheme.RightMenuItem"
                 android:src="@drawable/ic_archive_24dp" />
+
+            <ImageButton
+                android:id="@+id/MicButton"
+                style="@style/AppTheme.RightMenuItem"
+                android:src="@drawable/ic_mic_24dp" />
         </LinearLayout>
     </LinearLayout>
 </merge>
