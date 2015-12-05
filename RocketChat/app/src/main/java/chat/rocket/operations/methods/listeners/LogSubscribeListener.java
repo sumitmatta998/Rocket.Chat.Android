@@ -4,7 +4,7 @@ import android.util.Log;
 
 import chat.rocket.operations.meteor.SubscribeListener;
 
-public abstract class LogSubscribeListener implements SubscribeListener {
+public class LogSubscribeListener implements SubscribeListener {
 
     private final String tag;
 

@@ -41,6 +41,7 @@ import chat.rocket.operations.Subscription;
 import chat.rocket.operations.meteor.SubscribeListener;
 import chat.rocket.operations.methods.listeners.FileUploadListener;
 import chat.rocket.operations.methods.listeners.LoadHistoryListener;
+import chat.rocket.operations.methods.listeners.LogSubscribeListener;
 import chat.rocket.operations.methods.listeners.ReadMessagesListener;
 import chat.rocket.operations.methods.listeners.SendMessageListener;
 import io.fabric.sdk.android.services.network.HttpRequest;
@@ -71,17 +72,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     };
 
     private Subscription mRoomSubscription;
-    private SubscribeListener mRoomListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
+    private SubscribeListener mRoomListener = new LogSubscribeListener();
 
     private ReadMessagesListener mReadMessagesListener = new ReadMessagesListener() {
         @Override
