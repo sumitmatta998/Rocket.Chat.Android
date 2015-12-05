@@ -32,6 +32,7 @@ import chat.rocket.operations.meteor.MeteorCallback;
 import chat.rocket.operations.meteor.MeteorSingleton;
 import chat.rocket.operations.meteor.Persistence;
 import chat.rocket.operations.meteor.SubscribeListener;
+import chat.rocket.operations.methods.listeners.LogSubscribeListener;
 import io.fabric.sdk.android.Fabric;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -115,14 +116,15 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
             }
         });
 
-        SubscribeListener listener = new SubscribeListener() {
+        SubscribeListener listener = new LogSubscribeListener() {
             @Override
             public void onSuccess() {
+                super.onSuccess();
             }
 
             @Override
             public void onError(String error, String reason, String details) {
-
+                super.onError(error, reason, details);
             }
         };
 
@@ -140,6 +142,7 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
         subs.streamMessages(listener);
 
+        //Do I really need it?
         subs.meteorAutoupdateClientVersions(listener);
 
         subs.subscription(listener);
