@@ -101,6 +101,7 @@ public class RocketApp extends Application implements Persistence {
                     mConnectionSubscription.unsubscribe();
                 })
                 .create()
+                .onBackpressureBuffer()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(data -> {
@@ -117,7 +118,25 @@ public class RocketApp extends Application implements Persistence {
                     }
                 }, throwable -> {
                     onException(throwable);
-                    mRxMeteor.disconnect();
+                    mRxMeteor.disconnect().
+                            subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Subscriber<Void>() {
+                                @Override
+                                public void onCompleted() {
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Timber.e(e, "disconnect() - onError");
+                                }
+
+                                @Override
+                                public void onNext(Void aVoid) {
+                                    Timber.d("disconnect() - onNext");
+                                }
+                            });
                 });
 
         mMeteor.reconnect();
@@ -261,11 +280,14 @@ public class RocketApp extends Application implements Persistence {
                         subscriber.onNext(rcSub);
                         subscriber.onCompleted();
                     }
-                }).subscribe(rcSub -> {
-                    if (rcSub != null) {
-                        rcSub.update(documentID, updatedValuesJson);
-                    }
-                });
+                })
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(rcSub -> {
+                            if (rcSub != null) {
+                                rcSub.update(documentID, updatedValuesJson);
+                            }
+                        });
                 return;
             case StreamNotifyRoom.COLLECTION_NAME:
                 break;
@@ -285,7 +307,8 @@ public class RocketApp extends Application implements Persistence {
                     subscriber.onError(e);
                 }
             }
-        }).subscribeOn(Schedulers.computation())
+        })
+                .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(dao -> {
                     if (dao != null) {

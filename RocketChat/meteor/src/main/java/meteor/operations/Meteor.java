@@ -160,16 +160,21 @@ public class Meteor {
             @Override
             public void onClose(int code, String reason) {
                 if (code != CloseCode.NORMAL) {
-
                     mConnecting = false;
                     mConnection = null;
                     mReconnectAttempts++;
                     if (mReconnectAttempts <= RECONNECT_ATTEMPTS_MAX) {
                         // try to re-connect automatically
                         openConnection(false);
-                    } else {
-                        disconnect(code, reason);
                     }
+                } else {
+                    mReconnectAttempts = 0;
+                    mListeners.clear();
+                    mSessionID = null;
+                    mConnecting = false;
+                }
+                if (mCallback != null) {
+                    mCallback.onDisconnect(code, reason);
                 }
             }
         };
@@ -284,12 +289,6 @@ public class Meteor {
      * Disconnect the client from the server
      */
     public void disconnect(int code, String reason) {
-        mListeners.clear();
-        mSessionID = null;
-        mConnecting = false;
-        if (mCallback != null) {
-            mCallback.onDisconnect(code, reason);
-        }
         try {
             if (mConnection != null) {
                 mConnection.close(CloseCode.NORMAL, "Goodbye and thanks for the fishes!");
@@ -331,8 +330,10 @@ public class Meteor {
 
         try {
             Timber.d("-->" + message);
-            RequestBody request = RequestBody.create(WebSocket.TEXT, message);
-            mConnection.sendMessage(request);
+            synchronized (mConnection) {
+                RequestBody request = RequestBody.create(WebSocket.TEXT, message);
+                mConnection.sendMessage(request);
+            }
         } catch (Exception e) {
             if (mCallback != null) {
                 mCallback.onException(e);

@@ -12,6 +12,8 @@ import chat.rocket.rc.RocketSubscriptions;
 import chat.rocket.rxrc.RxRocketMethods;
 import chat.rocket.rxrc.RxRocketSubscriptions;
 import meteor.operations.MeteorSingleton;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import rxmeteor.operations.RxMeteor;
 
 /**
@@ -59,6 +61,9 @@ public class BaseActivity extends RxAppCompatActivity {
     }
 
     protected void endMeteorConnection() {
-        mRxMeteor.disconnect();
+        mRxMeteor.disconnect()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
     }
 }

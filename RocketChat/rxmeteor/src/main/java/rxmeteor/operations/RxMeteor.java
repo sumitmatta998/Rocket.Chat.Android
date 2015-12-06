@@ -95,8 +95,16 @@ public class RxMeteor {
         return mMeteor.isConnecting();
     }
 
-    public void disconnect() {
-        mMeteor.disconnect();
+    public Observable<Void> disconnect() {
+        return Observable.create((Observable.OnSubscribe<Void>) subscriber -> {
+            try {
+                mMeteor.disconnect();
+                subscriber.onNext(null);
+                subscriber.onCompleted();
+            } catch (Exception e) {
+                subscriber.onError(e);
+            }
+        });
     }
 
     public void reconnect() {

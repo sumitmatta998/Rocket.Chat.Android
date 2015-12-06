@@ -341,4 +341,43 @@ public class RxRocketMethods {
         });
     }
 
+    public Observable<String> setPushUser() {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                mMethods.setPushUser(new RegisterUserListener() {
+                    @Override
+                    public void onResult(String result) {
+                        subscriber.onNext(result);
+                        subscriber.onCompleted();
+                    }
+
+                    @Override
+                    public void onError(MeteorException e) {
+                        subscriber.onError(e);
+                    }
+                });
+            }
+        });
+    }
+
+    public Observable<String> updatePush(String token) {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                mMethods.updatePush(token, new RegisterUserListener() {
+                    @Override
+                    public void onResult(String result) {
+                        subscriber.onNext(result);
+                        subscriber.onCompleted();
+                    }
+
+                    @Override
+                    public void onError(MeteorException e) {
+                        subscriber.onError(e);
+                    }
+                });
+            }
+        });
+    }
 }

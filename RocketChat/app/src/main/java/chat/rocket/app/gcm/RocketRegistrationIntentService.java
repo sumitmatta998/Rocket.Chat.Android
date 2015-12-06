@@ -28,11 +28,10 @@ import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
 
-import meteor.operations.MeteorException;
-import meteor.operations.MeteorSingleton;
-import meteor.operations.ResultListener;
+import chat.rocket.app.RocketApp;
 import chat.rocket.rc.RocketMethods;
-import chat.rocket.rc.listeners.LogListener;
+import chat.rocket.rxrc.RxRocketMethods;
+import rx.Subscriber;
 
 public class RocketRegistrationIntentService extends IntentService {
 
@@ -78,27 +77,26 @@ public class RocketRegistrationIntentService extends IntentService {
      * @param token The new token.
      */
     private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
-        RocketMethods methods = new RocketMethods(MeteorSingleton.getInstance());
-        methods.setPushUser(new LogListener() {
-            @Override
-            public void onSuccess(String result) {
-                super.onSuccess(result);
-                ResultListener listener = new LogListener() {
-                    @Override
-                    public void onSuccess(String result) {
-                        super.onSuccess(result);
-                        mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, true).apply();
-                    }
+        //TODO: find out if we are connected and the user logged...
+        RxRocketMethods methods = new RxRocketMethods(new RocketMethods(((RocketApp) getApplicationContext()).getMeteor()));
 
-                    @Override
-                    public void onError(MeteorException e) {
-                        super.onError(e);
-                        mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false).apply();
-                    }
-                };
-                //TODO:make it synchronous
-                methods.updatePush(token, listener);
+        //Notes: Don't go to background thread, onHandleIntent processing need to be sync, we are alread out of main thread
+        methods.setPushUser()
+                .flatMap(s -> methods.updatePush(token))
+                .subscribe(new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+                mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, true).apply();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false).apply();
+            }
+
+            @Override
+            public void onNext(String s) {
+
             }
         });
     }

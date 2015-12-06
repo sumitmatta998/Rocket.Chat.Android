@@ -35,6 +35,7 @@ import chat.rocket.app.R;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 public class AudioRecordActivity extends AppCompatActivity {
@@ -120,6 +121,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         mStartTime = new Date();
         setTint(mSeekBar, getResources().getColor(R.color.primaryColor));
         mTimerSubscription = Observable.interval(50, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(aLong -> {
                     int time = (int) (System.currentTimeMillis() - mStartTime.getTime());
@@ -162,6 +164,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         mStartTime = new Date();
         setTint(mSeekBar, getResources().getColor(R.color.accentColor));
         mTimerSubscription = Observable.interval(50, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(aLong -> {
                     int time = (int) (System.currentTimeMillis() - mStartTime.getTime());

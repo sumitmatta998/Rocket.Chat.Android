@@ -244,7 +244,7 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(mLoginSubscriber);
-            ;
+
         } else {
             mRxRocketMethods.loginWithUsername(login, password)
                     .subscribeOn(Schedulers.io())
