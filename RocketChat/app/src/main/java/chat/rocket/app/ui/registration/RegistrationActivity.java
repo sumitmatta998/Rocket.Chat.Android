@@ -9,9 +9,11 @@ import android.widget.Toast;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.rc.listeners.RegisterUserListener;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by julio on 20/11/15.
@@ -56,22 +58,30 @@ public class RegistrationActivity extends BaseActivity {
     }
 
     private void executeRegistration(String name, String email, String password) {
-        mRocketMethods.registerUser(name, email, password, new RegisterUserListener() {
-            @Override
-            public void onError(MeteorException e) {
-                Protocol.Error err = ((MeteorException) e).getError();
-                String error = err.getError();
-                String reason = err.getReason();
-                String details = err.getDetails();
-                //TODO: Think about a nice error message
-                Toast.makeText(RegistrationActivity.this, "Ops, something is wrong: " + reason, Toast.LENGTH_LONG).show();
-            }
+        mRxRocketMethods.registerUser(name, email, password)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
 
-            @Override
-            public void onResult(String result) {
-                returnUserData(email, password);
-            }
-        });
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Protocol.Error err = ((MeteorException) e).getError();
+                        String error = err.getError();
+                        String reason = err.getReason();
+                        String details = err.getDetails();
+                        //TODO: Think about a nice error message
+                        Toast.makeText(RegistrationActivity.this, "Ops, something is wrong: " + reason, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        returnUserData(email, password);
+                    }
+                });
     }
 
     private void returnUserData(String email, String password) {

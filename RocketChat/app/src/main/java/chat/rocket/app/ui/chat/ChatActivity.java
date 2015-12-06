@@ -36,18 +36,13 @@ import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.models.RCSubscription;
-import chat.rocket.rc.listeners.FileUploadListener;
-import chat.rocket.rc.listeners.LoadHistoryListener;
-import chat.rocket.rc.listeners.LogListener;
-import chat.rocket.rc.listeners.ReadMessagesListener;
-import chat.rocket.rc.listeners.SendMessageListener;
 import chat.rocket.rc.models.Message;
-import chat.rocket.rc.models.Messages;
 import io.fabric.sdk.android.services.network.HttpRequest;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
-import meteor.operations.ResultListener;
-import meteor.operations.Subscription;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by julio on 29/11/15.
@@ -58,50 +53,10 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
     private RCSubscription mRcSubscription;
     private FabMenuLayout mFabMenu;
-    private LoadHistoryListener mLoadHistoryListener = new LoadHistoryListener() {
-        @Override
-        public void onResult(Messages result) {
-            mRocketMethods.readMessages(mRcSubscription.getRid(), mReadMessagesListener);
-            for (Message m : result.getMessages()) {
-                MessageDAO msg = new MessageDAO(m);
-                msg.insert();
-            }
-        }
 
-        @Override
-        public void onError(MeteorException e) {
-
-        }
-    };
-
-    private Subscription mRoomSubscription;
-    private ResultListener mRoomListener = new LogListener();
-
-    private ReadMessagesListener mReadMessagesListener = new ReadMessagesListener() {
-        @Override
-        public void onResult(Integer result) {
-
-        }
-
-        @Override
-        public void onError(MeteorException e) {
-
-        }
-    };
     private ListView mListView;
     private MessagesAdapter mAdapter;
-    private SendMessageListener mSendMessageListener = new SendMessageListener() {
-        @Override
-        public void onResult(Message result) {
-            mSendEditText.getText().clear();
-            mListView.smoothScrollToPosition(mAdapter.getCount() - 1);
-        }
 
-        @Override
-        public void onError(MeteorException e) {
-
-        }
-    };
     private EditText mSendEditText;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -144,7 +99,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         mFabMenu.setMenuClickListener(this);
         mSendEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                mRocketMethods.sendMessage(mRcSubscription.getRid(), mSendEditText.getText().toString(), mSendMessageListener);
+                mRxRocketMethods.sendMessage(mRcSubscription.getRid(), mSendEditText.getText().toString())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(message -> {
+                            mSendEditText.getText().clear();
+                            mListView.smoothScrollToPosition(mAdapter.getCount() - 1);
+                        });
                 return true;
             }
             return false;
@@ -156,8 +117,24 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         if (unread == 0) {
             unread = 25;
         }
-        mRocketMethods.loadHistory(mRcSubscription.getRid(), null, unread, mRcSubscription.getLs(), mLoadHistoryListener);
-        mRoomSubscription = mRocketSubscriptions.room(mRcSubscription.getName(), mRcSubscription.getType(), mRoomListener);
+        mRxRocketMethods.loadHistory(mRcSubscription.getRid(), null, unread, mRcSubscription.getLs())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(messages -> {
+                    mRxRocketMethods.readMessages(mRcSubscription.getRid())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    for (Message m : messages.getMessages()) {
+                        MessageDAO msg = new MessageDAO(m);
+                        msg.insert();
+                    }
+                });
+
+        mRxRocketSubscriptions.room(mRcSubscription.getName(), mRcSubscription.getType())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
 
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
 
@@ -183,26 +160,31 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     }
 
     private void processUpload(String name, long size, String[] parts) {
-        mRocketMethods.uploadFile("https://" + BuildConfig.WS_HOST, mRxMeteor.getUserId(), mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size, new FileUploadListener() {
-            @Override
-            public void onProgress(float progress) {
-                Log.d("upload - onProgress", progress + "%");
-            }
+        mRxRocketMethods.uploadFile("https://" + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
+                mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Float>() {
+                    @Override
+                    public void onCompleted() {
 
-            @Override
-            public void onSuccess(String result) {
-                Log.d("upload - onSuccess", result);
-            }
+                    }
 
-            @Override
-            public void onError(MeteorException e) {
-                Protocol.Error err =  e.getError();
-                String error = err.getError();
-                String reason = err.getReason();
-                String details = err.getDetails();
-                Log.d("upload - onError", error + ", " + reason + ", " + details);
-            }
-        });
+                    @Override
+                    public void onError(Throwable e) {
+                        Protocol.Error err = ((MeteorException) e).getError();
+                        String error = err.getError();
+                        String reason = err.getReason();
+                        String details = err.getDetails();
+                        Log.d("upload - onError", error + ", " + reason + ", " + details);
+                    }
+
+                    @Override
+                    public void onNext(Float progress) {
+                        Log.d("upload - onProgress", progress + "%");
+                    }
+                });
+
     }
 
     private String decodeFile(File file) {
@@ -233,14 +215,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             }
         }
         return fileStr;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mRoomSubscription != null) {
-            mRoomSubscription.unSubscribe();
-        }
     }
 
     @Override

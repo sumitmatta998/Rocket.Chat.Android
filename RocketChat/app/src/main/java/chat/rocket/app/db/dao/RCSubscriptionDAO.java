@@ -108,7 +108,7 @@ public class RCSubscriptionDAO extends RCSubscription implements ContentValuable
         JsonParser parser = new JsonParser();
         JsonElement element = parser.parse(json);
         JsonObject obj = element.getAsJsonObject();
-        //TODO: cry like a baby, noone deserve this.
+
         if (obj.has("unread")) {
             unread = obj.get("unread").getAsInt();
         }

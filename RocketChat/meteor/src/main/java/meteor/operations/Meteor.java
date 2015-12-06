@@ -330,7 +330,7 @@ public class Meteor {
         }
 
         try {
-            Timber.d("" + message);
+            Timber.d("-->" + message);
             RequestBody request = RequestBody.create(WebSocket.TEXT, message);
             mConnection.sendMessage(request);
         } catch (Exception e) {

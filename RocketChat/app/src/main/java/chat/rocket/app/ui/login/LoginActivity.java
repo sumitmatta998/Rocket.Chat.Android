@@ -42,9 +42,8 @@ import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.SetUserNameDialog.SetUsernameCallback;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
-import chat.rocket.rc.RocketMethods;
-import chat.rocket.rc.listeners.LogListener;
 import chat.rocket.rc.models.Token;
+import chat.rocket.rxrc.RxRocketMethods;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
 import rx.Subscriber;
@@ -87,46 +86,46 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     private void subscribeToUserDataAndStartMainActivity(String userId) {
         mRxRocketSubscriptions.userData()
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Void>() {
-            @Override
-            public void onCompleted() {
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Void>() {
+                    @Override
+                    public void onCompleted() {
 
-            }
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                Protocol.Error err = ((MeteorException) e).getError();
-                String error = err.getError();
-                String reason = err.getReason();
-                String details = err.getDetails();
-                Timber.d(error, reason, details);
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        Protocol.Error err = ((MeteorException) e).getError();
+                        String error = err.getError();
+                        String reason = err.getReason();
+                        String details = err.getDetails();
+                        Timber.d(error, reason, details);
+                    }
 
-            @Override
-            public void onNext(Void v) {
-                Users user = Users.getUser(userId);
-                if (TextUtils.isEmpty(user.getUsername())) {
-                    getUsernameSuggestion();
-                } else {
-                    startMainActivity();
-                }
-            }
-        });
+                    @Override
+                    public void onNext(Void v) {
+                        Users user = Users.getUser(userId);
+                        if (TextUtils.isEmpty(user.getUsername())) {
+                            getUsernameSuggestion();
+                        } else {
+                            startMainActivity();
+                        }
+                    }
+                });
     }
 
     private void getUsernameSuggestion() {
-        mRocketMethods.getUsernameSuggestion(new LogListener() {
-            @Override
-            public void onSuccess(String result) {
-                super.onSuccess(result);
-                SetUserNameDialog dialog = new SetUserNameDialog();
-                Bundle bundle = new Bundle();
-                // TODO: the suggestion should be a valid login suggestion, but it is buggy at the moment
-                bundle.putString(SetUserNameDialog.SUGGESTION, DBManager.getNormalizedString(result.replace("\"", "").replace(" ", ".")));
-                dialog.setArguments(bundle);
-                dialog.show(getSupportFragmentManager(), "dialog");
-            }
-        });
+        mRxRocketMethods.getUsernameSuggestion()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+                    SetUserNameDialog dialog = new SetUserNameDialog();
+                    Bundle bundle = new Bundle();
+                    // TODO: the suggestion should be a valid login suggestion, but it is buggy at the moment
+                    bundle.putString(SetUserNameDialog.SUGGESTION, DBManager.getNormalizedString(result.replace("\"", "").replace(" ", ".")));
+                    dialog.setArguments(bundle);
+                    dialog.show(getSupportFragmentManager(), "dialog");
+                });
     }
 
     private FacebookCallback<LoginResult> mFacebookCallback = new FacebookCallback<LoginResult>() {
@@ -204,7 +203,9 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
 
     private void setupFacebookLogin() {
         //TODO: Check if facebook login is actvated in the server
-        if (FacebookSdk.getApplicationId() != null) {
+        String appId = FacebookSdk.getApplicationId();
+        Timber.d("appId: " + appId);
+        if (appId != null) {
             mCallbackManager = CallbackManager.Factory.create();
             mFacebookButton.setReadPermissions(PERMISSIONS);
             mFacebookButton.registerCallback(mCallbackManager, mFacebookCallback);
@@ -216,7 +217,7 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(mLoginSubscriber);
-                        ;
+
                     }
                 }
             };
@@ -308,7 +309,7 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     }
 
     @Override
-    public RocketMethods getRocketMethods() {
-        return mRocketMethods;
+    public RxRocketMethods getRocketMethods() {
+        return mRxRocketMethods;
     }
 }

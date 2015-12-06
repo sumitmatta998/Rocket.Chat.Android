@@ -13,10 +13,12 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import chat.rocket.app.R;
-import chat.rocket.rc.RocketMethods;
-import chat.rocket.rc.listeners.LogListener;
+import chat.rocket.rxrc.RxRocketMethods;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by julio on 25/11/15.
@@ -28,7 +30,7 @@ public class SetUserNameDialog extends DialogFragment {
     public interface SetUsernameCallback {
         void onSuccess(String name);
 
-        RocketMethods getRocketMethods();
+        RxRocketMethods getRocketMethods();
     }
 
     private SetUsernameCallback mCallback;
@@ -71,26 +73,31 @@ public class SetUserNameDialog extends DialogFragment {
     }
 
     private void setUsername(String name) {
-        mCallback.getRocketMethods().setUsername(name, new LogListener() {
-            @Override
-            public void onSuccess(String result) {
-                super.onSuccess(result);
-                mCallback.onSuccess(name);
-                dismiss();
-            }
+        mCallback.getRocketMethods().setUsername(name)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
 
-            @Override
-            public void onError(MeteorException e) {
-                super.onError(e);
-                Protocol.Error err = e.getError();
-                String error = err.getError();
-                String reason = err.getReason();
-                String details = err.getDetails();
-                mUsernameTextInputLayout.setErrorEnabled(true);
-                mUsernameTextInputLayout.setError(error + ", " + reason + ", " + details);
-            }
-        });
+                    }
 
+                    @Override
+                    public void onError(Throwable e) {
+                        Protocol.Error err = ((MeteorException) e).getError();
+                        String error = err.getError();
+                        String reason = err.getReason();
+                        String details = err.getDetails();
+                        mUsernameTextInputLayout.setErrorEnabled(true);
+                        mUsernameTextInputLayout.setError(error + ", " + reason + ", " + details);
+                    }
+
+                    @Override
+                    public void onNext(String name) {
+                        mCallback.onSuccess(name);
+                        dismiss();
+                    }
+                });
     }
 
     @Override

@@ -6,24 +6,13 @@ import android.view.Gravity;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.rc.listeners.LogListener;
-import meteor.operations.ResultListener;
-import meteor.operations.Subscription;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
-
-    private ResultListener mFilteredUsersListener = new LogListener();
-    private Subscription mFilteredUsersSubscription;
-
-    private ResultListener mChannelAutocompleteListener = new LogListener();
-    private Subscription mChannelAutocompleteSubscription;
-
-    private ResultListener mStreamMessagesListener = new LogListener();
-    private Subscription mStreamMessagesSubscription;
-
-    private ResultListener mFullUserDataListener = new LogListener();
-    private Subscription mFullUserDataSubscription;
 
 
     @Override
@@ -37,10 +26,29 @@ public class MainActivity extends BaseActivity {
         }
 
         //TODO: why that number 1 ??? is it the current number of users in the room?
-        mFullUserDataSubscription = mRocketSubscriptions.fullUserData(null, 1, mFullUserDataListener);
-        mFilteredUsersSubscription = mRocketSubscriptions.filteredUsers(mFilteredUsersListener);
-        mChannelAutocompleteSubscription = mRocketSubscriptions.channelAutocomplete(mChannelAutocompleteListener);
-        mStreamMessagesSubscription = mRocketSubscriptions.streamMessages(mStreamMessagesListener);
+        mRxRocketSubscriptions.fullUserData(null, 1)
+                .flatMap(aVoid -> mRxRocketSubscriptions.filteredUsers())
+                .flatMap(aVoid1 -> mRxRocketSubscriptions.channelAutocomplete())
+                .flatMap(aVoid2 -> mRxRocketSubscriptions.streamMessages())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Void>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Timber.e(e, "fail");
+                    }
+
+                    @Override
+                    public void onNext(Void aVoid) {
+                        Timber.i("ok");
+                    }
+                });
+
 
     }
 
@@ -56,21 +64,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mFilteredUsersSubscription != null) {
-            mFilteredUsersSubscription.unSubscribe();
-        }
-
-        if (mChannelAutocompleteSubscription != null) {
-            mChannelAutocompleteSubscription.unSubscribe();
-        }
-
-        if (mStreamMessagesSubscription != null) {
-            mStreamMessagesSubscription.unSubscribe();
-        }
-
-        if (mFullUserDataSubscription != null) {
-            mFullUserDataSubscription.unSubscribe();
-        }
         if (isFinishing()) {
             endMeteorConnection();
         }

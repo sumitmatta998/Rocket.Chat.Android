@@ -18,8 +18,6 @@ import rxmeteor.operations.RxMeteor;
  * Created by julio on 20/11/15.
  */
 public class BaseActivity extends RxAppCompatActivity {
-    protected RocketMethods mRocketMethods;
-    protected RocketSubscriptions mRocketSubscriptions;
     protected RxRocketSubscriptions mRxRocketSubscriptions;
     protected RxMeteor mRxMeteor;
     protected RxRocketMethods mRxRocketMethods;
@@ -28,7 +26,6 @@ public class BaseActivity extends RxAppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (FacebookSdk.getApplicationId() != null) {
-            // Logs 'install' and 'app activate' App Events.
             AppEventsLogger.activateApp(this);
         }
     }
@@ -37,7 +34,6 @@ public class BaseActivity extends RxAppCompatActivity {
     protected void onPause() {
         super.onPause();
         if (FacebookSdk.getApplicationId() != null) {
-            // Logs 'app deactivate' App Event.
             AppEventsLogger.deactivateApp(this);
         }
     }
@@ -45,13 +41,14 @@ public class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //TODO: Use dagger, for god sakes
         RocketApp app = ((RocketApp) getApplication());
         MeteorSingleton meteor = app.getMeteor();
         mRxMeteor = app.getRxMeteor();
-        mRocketMethods = new RocketMethods(meteor);
-        mRxRocketMethods = new RxRocketMethods(mRocketMethods);
-        mRocketSubscriptions = new RocketSubscriptions(meteor);
-        mRxRocketSubscriptions = new RxRocketSubscriptions(mRocketSubscriptions);
+        RocketMethods rocketMethods = new RocketMethods(meteor);
+        mRxRocketMethods = new RxRocketMethods(rocketMethods);
+        RocketSubscriptions rocketSubscriptions = new RocketSubscriptions(meteor);
+        mRxRocketSubscriptions = new RxRocketSubscriptions(rocketSubscriptions);
     }
 
     protected void startMeteorConnection() {

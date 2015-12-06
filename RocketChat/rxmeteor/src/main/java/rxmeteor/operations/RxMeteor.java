@@ -1,6 +1,7 @@
 package rxmeteor.operations;
 
-import android.support.v4.util.Pair;
+
+import android.util.Pair;
 
 import meteor.operations.MeteorCallback;
 import meteor.operations.MeteorSingleton;
@@ -56,7 +57,7 @@ public class RxMeteor {
             @Override
             public void onDisconnect(int code, String reason) {
                 if (mDisconnectObserver != null && !subscriber.isUnsubscribed())
-                    mDisconnectObserver.call(new Pair<>(code, reason));
+                    mDisconnectObserver.call(new Pair<Integer, String>(code, reason));
             }
 
             @Override
