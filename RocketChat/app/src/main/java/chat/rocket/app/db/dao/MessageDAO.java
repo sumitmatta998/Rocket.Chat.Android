@@ -9,11 +9,11 @@ import chat.rocket.app.db.DBContentProvider;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
-import chat.rocket.app.enumerations.MessageType;
-import chat.rocket.models.FileId;
-import chat.rocket.models.Message;
-import chat.rocket.models.TimeStamp;
-import chat.rocket.models.UrlParts;
+import chat.rocket.rc.enumerations.MessageType;
+import chat.rocket.rc.models.FileId;
+import chat.rocket.rc.models.Message;
+import chat.rocket.rc.models.TimeStamp;
+import chat.rocket.rc.models.UrlParts;
 
 import static chat.rocket.app.db.util.TableBuilder.INTEGER;
 import static chat.rocket.app.db.util.TableBuilder.ON_CONFLICT_REPLACE;
@@ -109,7 +109,7 @@ public class MessageDAO extends Message implements ContentValuables {
     }
 
     public void insert() {
-        DBManager.getInstance().insert(TABLE_NAME, this);
+        DBManager.getInstance().insert(TABLE_NAME, this, null);
         new UsernameIdDAO(documentID, usernameId).insert();
         if (editedBy != null) {
             new EditedByDAO(documentID, editedBy).insert();

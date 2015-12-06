@@ -6,17 +6,23 @@ import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
-import chat.rocket.operations.RocketSubscriptions;
-import chat.rocket.operations.meteor.MeteorSingleton;
-import chat.rocket.operations.methods.RocketMethods;
+import chat.rocket.app.RocketApp;
+import chat.rocket.rc.RocketMethods;
+import chat.rocket.rc.RocketSubscriptions;
+import chat.rocket.rxrc.RxRocketMethods;
+import chat.rocket.rxrc.RxRocketSubscriptions;
+import meteor.operations.MeteorSingleton;
+import rxmeteor.operations.RxMeteor;
 
 /**
  * Created by julio on 20/11/15.
  */
 public class BaseActivity extends RxAppCompatActivity {
-    protected MeteorSingleton mMeteor;
     protected RocketMethods mRocketMethods;
     protected RocketSubscriptions mRocketSubscriptions;
+    protected RxRocketSubscriptions mRxRocketSubscriptions;
+    protected RxMeteor mRxMeteor;
+    protected RxRocketMethods mRxRocketMethods;
 
     @Override
     protected void onResume() {
@@ -39,18 +45,23 @@ public class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mMeteor = MeteorSingleton.getInstance();
-        mRocketMethods = new RocketMethods(mMeteor);
-        mRocketSubscriptions = new RocketSubscriptions();
+        RocketApp app = ((RocketApp) getApplication());
+        MeteorSingleton meteor = app.getMeteor();
+        mRxMeteor = app.getRxMeteor();
+        mRocketMethods = new RocketMethods(meteor);
+        mRxRocketMethods = new RxRocketMethods(mRocketMethods);
+        mRocketSubscriptions = new RocketSubscriptions(meteor);
+        mRxRocketSubscriptions = new RxRocketSubscriptions(mRocketSubscriptions);
     }
 
     protected void startMeteorConnection() {
-        if (!mMeteor.isConnected() && !mMeteor.isConnecting()) {
-            mMeteor.reconnect();
+        if (!mRxMeteor.isConnected() && !mRxMeteor.isConnecting()) {
+            RocketApp app = ((RocketApp) getApplication());
+            app.connect();
         }
     }
 
     protected void endMeteorConnection() {
-        mMeteor.disconnect();
+        mRxMeteor.disconnect();
     }
 }

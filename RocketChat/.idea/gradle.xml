@@ -10,12 +10,22 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/meteor" />
+            <option value="$PROJECT_DIR$/rc" />
+            <option value="$PROJECT_DIR$/rxmeteor" />
+            <option value="$PROJECT_DIR$/rxrc" />
+            <option value="$PROJECT_DIR$/timber" />
           </set>
         </option>
         <option name="myModules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/meteor" />
+            <option value="$PROJECT_DIR$/rc" />
+            <option value="$PROJECT_DIR$/rxmeteor" />
+            <option value="$PROJECT_DIR$/rxrc" />
+            <option value="$PROJECT_DIR$/timber" />
           </set>
         </option>
       </GradleProjectSettings>

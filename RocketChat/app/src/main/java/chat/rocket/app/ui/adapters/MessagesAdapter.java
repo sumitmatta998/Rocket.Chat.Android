@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import chat.rocket.app.db.dao.MessageDAO;
-import chat.rocket.models.Message;
+import chat.rocket.rc.models.Message;
 
 /**
  * Created by julio on 29/11/15.

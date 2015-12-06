@@ -42,11 +42,15 @@ import chat.rocket.app.ui.home.MainActivity;
 import chat.rocket.app.ui.login.SetUserNameDialog.SetUsernameCallback;
 import chat.rocket.app.ui.login.password.ForgotPasswordActivity;
 import chat.rocket.app.ui.registration.RegistrationActivity;
-import chat.rocket.models.Token;
-import chat.rocket.operations.meteor.SubscribeListener;
-import chat.rocket.operations.methods.RocketMethods;
-import chat.rocket.operations.methods.listeners.LogListener;
-import chat.rocket.operations.methods.listeners.LoginListener;
+import chat.rocket.rc.RocketMethods;
+import chat.rocket.rc.listeners.LogListener;
+import chat.rocket.rc.models.Token;
+import meteor.operations.MeteorException;
+import meteor.operations.Protocol;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 /**
  * Created by julio on 20/11/15.
@@ -58,22 +62,48 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
     private TwitterLoginButton mTwitterButton;
     private CallbackManager mCallbackManager;
     private AccessTokenTracker mAccessTokenTracker;
-    private LoginListener mLoginListener = new LoginListener() {
+    private Subscriber<? super Token> mLoginSubscriber = new Subscriber<Token>() {
         @Override
-        public void onResult(Token result) {
-            subscribeToUserDataAndStartMainActivity(result.getId());
+        public void onCompleted() {
+
         }
 
         @Override
-        public void onError(String error, String reason, String details) {
+        public void onError(Throwable e) {
+            Protocol.Error err = ((MeteorException) e).getError();
+            String error = err.getError();
+            String reason = err.getReason();
+            String details = err.getDetails();
+            Timber.d("error: " + error + ", reason: " + reason + ", details: " + details);
             Toast.makeText(LoginActivity.this, error + ", " + reason + ", " + details, Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onNext(Token token) {
+            subscribeToUserDataAndStartMainActivity(token.getId());
         }
     };
 
     private void subscribeToUserDataAndStartMainActivity(String userId) {
-        mRocketSubscriptions.userData(new SubscribeListener() {
+        mRxRocketSubscriptions.userData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Void>() {
             @Override
-            public void onSuccess() {
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Protocol.Error err = ((MeteorException) e).getError();
+                String error = err.getError();
+                String reason = err.getReason();
+                String details = err.getDetails();
+                Timber.d(error, reason, details);
+            }
+
+            @Override
+            public void onNext(Void v) {
                 Users user = Users.getUser(userId);
                 if (TextUtils.isEmpty(user.getUsername())) {
                     getUsernameSuggestion();
@@ -81,16 +111,11 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
                     startMainActivity();
                 }
             }
-
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
         });
     }
 
     private void getUsernameSuggestion() {
-        mRocketMethods.getUsernameSuggestion(new LogListener("getusernamesug") {
+        mRocketMethods.getUsernameSuggestion(new LogListener() {
             @Override
             public void onSuccess(String result) {
                 super.onSuccess(result);
@@ -144,12 +169,12 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
             openRegistrationForResult();
         });
 
-        if (mMeteor.isLoggedIn()) {
-            Users user = Users.getUser(mMeteor.getUserId());
+        if (mRxMeteor.isLoggedIn()) {
+            Users user = Users.getUser(mRxMeteor.getUserId());
             if (user.getUsername() != null) {
                 startMainActivity();
             } else {
-                subscribeToUserDataAndStartMainActivity(mMeteor.getUserId());
+                subscribeToUserDataAndStartMainActivity(mRxMeteor.getUserId());
             }
         }
 
@@ -164,7 +189,7 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
                     TwitterAuthToken authToken = result.data.getAuthToken();
                     //ATENTION: this is not working
                     // see https://github.com/RocketChat/Rocket.Chat/issues/1484
-                    mRocketMethods.loginWithOAuth(authToken.token, authToken.secret, mLoginListener);
+                    mRxRocketMethods.loginWithOAuth(authToken.token, authToken.secret);
                 }
 
                 @Override
@@ -187,7 +212,11 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
                 @Override
                 protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
                     if (currentAccessToken != null) {
-                        mRocketMethods.loginWithFacebook(currentAccessToken.getToken(), currentAccessToken.getExpires().getTime() - new Date().getTime(), mLoginListener);
+                        mRxRocketMethods.loginWithFacebook(currentAccessToken.getToken(), currentAccessToken.getExpires().getTime() - new Date().getTime())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(mLoginSubscriber);
+                        ;
                     }
                 }
             };
@@ -210,9 +239,16 @@ public class LoginActivity extends BaseActivity implements SetUsernameCallback {
 
     private void executeLogin(String login, String password) {
         if (Patterns.EMAIL_ADDRESS.matcher(login).matches()) {
-            mRocketMethods.loginWithEmail(login, password, mLoginListener);
+            mRxRocketMethods.loginWithEmail(login, password)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(mLoginSubscriber);
+            ;
         } else {
-            mRocketMethods.loginWithUsername(login, password, mLoginListener);
+            mRxRocketMethods.loginWithUsername(login, password)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(mLoginSubscriber);
         }
     }
 

@@ -4,6 +4,11 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RocketChat.iml" filepath="$PROJECT_DIR$/RocketChat.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/meteor/meteor.iml" filepath="$PROJECT_DIR$/meteor/meteor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rc/rc.iml" filepath="$PROJECT_DIR$/rc/rc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rxmeteor/rxmeteor.iml" filepath="$PROJECT_DIR$/rxmeteor/rxmeteor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rxrc/rxrc.iml" filepath="$PROJECT_DIR$/rxrc/rxrc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/timber/timber.iml" filepath="$PROJECT_DIR$/timber/timber.iml" />
     </modules>
   </component>
 </project>

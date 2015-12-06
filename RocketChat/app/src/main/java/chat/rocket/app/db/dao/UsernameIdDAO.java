@@ -6,7 +6,7 @@ import android.database.Cursor;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
-import chat.rocket.models.UsernameId;
+import chat.rocket.rc.models.UsernameId;
 
 import static chat.rocket.app.db.util.TableBuilder.TEXT;
 
@@ -47,7 +47,7 @@ public class UsernameIdDAO extends UsernameId implements ContentValuables {
     }
 
     public void insert() {
-        DBManager.getInstance().insert(TABLE_NAME, this);
+        DBManager.getInstance().insert(TABLE_NAME, this, null);
     }
 
     @Override

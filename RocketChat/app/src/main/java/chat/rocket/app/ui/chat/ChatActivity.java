@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import chat.rocket.app.BuildConfig;
 import chat.rocket.app.R;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.MessageDAO;
@@ -33,18 +34,20 @@ import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
 import chat.rocket.app.ui.home.menu.SearchFragment;
 import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
-import chat.rocket.models.Message;
-import chat.rocket.models.Messages;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.models.RCSubscription;
-import chat.rocket.operations.Subscription;
-import chat.rocket.operations.meteor.SubscribeListener;
-import chat.rocket.operations.methods.listeners.FileUploadListener;
-import chat.rocket.operations.methods.listeners.LoadHistoryListener;
-import chat.rocket.operations.methods.listeners.LogSubscribeListener;
-import chat.rocket.operations.methods.listeners.ReadMessagesListener;
-import chat.rocket.operations.methods.listeners.SendMessageListener;
+import chat.rocket.rc.listeners.FileUploadListener;
+import chat.rocket.rc.listeners.LoadHistoryListener;
+import chat.rocket.rc.listeners.LogListener;
+import chat.rocket.rc.listeners.ReadMessagesListener;
+import chat.rocket.rc.listeners.SendMessageListener;
+import chat.rocket.rc.models.Message;
+import chat.rocket.rc.models.Messages;
 import io.fabric.sdk.android.services.network.HttpRequest;
+import meteor.operations.MeteorException;
+import meteor.operations.Protocol;
+import meteor.operations.ResultListener;
+import meteor.operations.Subscription;
 
 /**
  * Created by julio on 29/11/15.
@@ -66,13 +69,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
 
         @Override
-        public void onError(String error, String reason, String details) {
+        public void onError(MeteorException e) {
 
         }
     };
 
     private Subscription mRoomSubscription;
-    private SubscribeListener mRoomListener = new LogSubscribeListener();
+    private ResultListener mRoomListener = new LogListener();
 
     private ReadMessagesListener mReadMessagesListener = new ReadMessagesListener() {
         @Override
@@ -81,7 +84,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
 
         @Override
-        public void onError(String error, String reason, String details) {
+        public void onError(MeteorException e) {
 
         }
     };
@@ -95,7 +98,8 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
 
         @Override
-        public void onError(String error, String reason, String details) {
+        public void onError(MeteorException e) {
+
         }
     };
     private EditText mSendEditText;
@@ -179,7 +183,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     }
 
     private void processUpload(String name, long size, String[] parts) {
-        mRocketMethods.uploadFile(mMeteor.getUserId(), mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size, new FileUploadListener() {
+        mRocketMethods.uploadFile("https://" + BuildConfig.WS_HOST, mRxMeteor.getUserId(), mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size, new FileUploadListener() {
             @Override
             public void onProgress(float progress) {
                 Log.d("upload - onProgress", progress + "%");
@@ -191,7 +195,11 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             }
 
             @Override
-            public void onError(String error, String reason, String details) {
+            public void onError(MeteorException e) {
+                Protocol.Error err =  e.getError();
+                String error = err.getError();
+                String reason = err.getReason();
+                String details = err.getDetails();
                 Log.d("upload - onError", error + ", " + reason + ", " + details);
             }
         });

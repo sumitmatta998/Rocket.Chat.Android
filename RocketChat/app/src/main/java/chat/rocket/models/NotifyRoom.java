@@ -2,7 +2,7 @@ package chat.rocket.models;
 
 import java.io.Serializable;
 
-import chat.rocket.app.enumerations.NotifyActionType;
+import chat.rocket.rc.enumerations.NotifyActionType;
 
 /**
  * Created by julio on 01/12/15.

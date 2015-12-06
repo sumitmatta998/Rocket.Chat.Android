@@ -133,10 +133,21 @@ public class DBManager {
         }.startDelete(-1, null, uri, null, null);
     }
 
-    public void insert(String table, ContentValuables values) {
+    public interface OnInsert {
+        public void onInsertComplete();
+    }
+
+    public void insert(String table, ContentValuables values, OnInsert onInsert) {
         long id = -1;
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(table).build();
         new AsyncQueryHandler(mCtx.getContentResolver()) {
+            @Override
+            protected void onInsertComplete(int token, Object cookie, Uri uri) {
+                super.onInsertComplete(token, cookie, uri);
+                if (onInsert != null) {
+                    onInsert.onInsertComplete();
+                }
+            }
         }.startInsert(0, null, uri, values);
     }
 

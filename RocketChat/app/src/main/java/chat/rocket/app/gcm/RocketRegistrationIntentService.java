@@ -28,9 +28,11 @@ import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
 
-import chat.rocket.operations.meteor.ResultListener;
-import chat.rocket.operations.methods.RocketMethods;
-import chat.rocket.operations.methods.listeners.LogListener;
+import meteor.operations.MeteorException;
+import meteor.operations.MeteorSingleton;
+import meteor.operations.ResultListener;
+import chat.rocket.rc.RocketMethods;
+import chat.rocket.rc.listeners.LogListener;
 
 public class RocketRegistrationIntentService extends IntentService {
 
@@ -77,7 +79,7 @@ public class RocketRegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
-        RocketMethods methods = new RocketMethods();
+        RocketMethods methods = new RocketMethods(MeteorSingleton.getInstance());
         methods.setPushUser(new LogListener() {
             @Override
             public void onSuccess(String result) {
@@ -90,8 +92,8 @@ public class RocketRegistrationIntentService extends IntentService {
                     }
 
                     @Override
-                    public void onError(String error, String reason, String details) {
-                        super.onError(error, reason, details);
+                    public void onError(MeteorException e) {
+                        super.onError(e);
                         mSharedPreferences.edit().putBoolean(PushKeys.SENT_TOKEN_TO_SERVER, false).apply();
                     }
                 };

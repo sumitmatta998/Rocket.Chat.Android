@@ -13,8 +13,6 @@ import com.facebook.FacebookSdk;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
-import java.util.concurrent.TimeUnit;
-
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.collections.StreamMessages;
@@ -22,112 +20,142 @@ import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.db.dao.RCSubscriptionDAO;
-import chat.rocket.app.enumerations.LoginService;
-import chat.rocket.app.enumerations.NotifyActionType;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
-import chat.rocket.operations.RocketSubscriptions;
-import chat.rocket.operations.meteor.Meteor;
-import chat.rocket.operations.meteor.MeteorCallback;
-import chat.rocket.operations.meteor.MeteorSingleton;
-import chat.rocket.operations.meteor.Persistence;
-import chat.rocket.operations.meteor.SubscribeListener;
-import chat.rocket.operations.methods.listeners.LogSubscribeListener;
+import chat.rocket.rc.RocketSubscriptions;
+import chat.rocket.rc.enumerations.LoginService;
+import chat.rocket.rc.enumerations.NotifyActionType;
+import chat.rocket.rc.listeners.LogListener;
+import chat.rocket.rxrc.RxRocketSubscriptions;
 import io.fabric.sdk.android.Fabric;
-import rx.Observable;
+import meteor.operations.Meteor;
+import meteor.operations.MeteorException;
+import meteor.operations.MeteorSingleton;
+import meteor.operations.Persistence;
+import meteor.operations.Protocol;
+import meteor.operations.ResultListener;
+import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rxmeteor.operations.RxMeteor;
+import timber.log.TLog;
+import timber.log.Timber;
 
 
 /**
  * Created by julio on 16/11/15.
  */
-public class RocketApp extends Application implements Persistence, MeteorCallback {
-
-    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
-
-
+public class RocketApp extends Application implements Persistence {
     public static final String ACTION_DISCONNECTED = BuildConfig.APPLICATION_ID + ".METEOR.DISCONNECTED";
     public static final String ACTION_CONNECTED = BuildConfig.APPLICATION_ID + ".METEOR.CONNECTED";
     public static final String LOGGED_KEY = "logged";
+    private Subscription mConnectionSubscription;
+    private RxMeteor mRxMeteor;
+    private MeteorSingleton mMeteor;
+
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        setupTimber();
+        // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
         if (!TextUtils.isEmpty(BuildConfig.TWITTER_KEY)) {
             TwitterAuthConfig authConfig = new TwitterAuthConfig(BuildConfig.TWITTER_KEY, BuildConfig.TWITTER_SECRET);
             Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         } else {
             Fabric.with(this, new Crashlytics());
         }
+        mMeteor = MeteorSingleton.createInstance(this, BuildConfig.WS_URL, Meteor.SUPPORTED_DDP_VERSIONS[0]);
+        mRxMeteor = new RxMeteor(mMeteor);
+
         DBManager.getInstance().init(this);
-        setupMeteor();
         FacebookSdk.sdkInitialize(getApplicationContext());
 
+    }
+
+    private void setupTimber() {
+        Timber.plant(new Timber.DebugTree(), new TLog() {
+            @Override
+            public void wtf(String tag, String message) {
+                Log.wtf(tag, message);
+            }
+
+            @Override
+            public void println(int priority, String tag, String message) {
+                Log.println(priority, tag, message);
+            }
+        });
     }
 
     public static RocketApp get(Context context) {
         return (RocketApp) context.getApplicationContext();
     }
 
-    private void setupMeteor() {
-        // enable logging of internal events for the library
-        MeteorSingleton meteor = MeteorSingleton.createInstance(this, BuildConfig.WS_URL, Meteor.SUPPORTED_DDP_VERSIONS[0]);
-        meteor.setCallback(this);
+    public void connect() {
+        mConnectionSubscription = mRxMeteor
+                .setOnConnectObserver(signedInAutomatically -> onConnect(signedInAutomatically))
+                .setOnDisconnectObserver(pair ->
+                        onDisconnect(pair.first, pair.second))
+                .create()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(data -> {
+                    switch (data.getType()) {
+                        case ADD:
+                            onDataAdded(data.getCollectionName(), data.getDocumentID(), data.getNewValuesJson());
+                            break;
+                        case CHANGE:
+                            onDataChanged(data.getCollectionName(), data.getDocumentID(), data.getNewValuesJson(), data.getRemovedValuesJson());
+                            break;
+                        case REMOVE:
+                            onDataRemoved(data.getCollectionName(), data.getDocumentID());
+                            break;
+                    }
+                }, throwable -> {
+                    onException(throwable);
+                    mConnectionSubscription.unsubscribe();
+                });
+
+        mMeteor.reconnect();
     }
 
-    @Override
-    public String getString(String key) {
-        return PreferenceManager.getDefaultSharedPreferences(this).getString(key, null);
-    }
-
-    @Override
-    public void putString(String key, String value) {
-        PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, value).apply();
-    }
-
-    @Override
     public void onConnect(boolean signedInAutomatically) {
 
-        RocketSubscriptions subs = new RocketSubscriptions();
+        RocketSubscriptions subs = new RocketSubscriptions(MeteorSingleton.getInstance());
+        RxRocketSubscriptions rxSubs = new RxRocketSubscriptions(subs);
 
-        subs.loginServiceConfiguration(new SubscribeListener() {
+        rxSubs.loginServiceConfiguration().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Void>() {
             @Override
-            public void onSuccess() {
-                /*TODO: The database insertion is async, so before we query it, we need to wait some time
-                  need to change this approach to something more reliable, like a ContentObserver to the LoginServiceConfiguration collection*/
-                Observable.defer(() -> Observable.just("")).delay(500, TimeUnit.MICROSECONDS)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread()).subscribe(s -> {
-                    String appId = LoginServiceConfiguration.query(LoginService.FACEBOOK);
-                    if (!TextUtils.isEmpty(appId)) {
-                        FacebookSdk.setApplicationId(appId);
-                    }
-                    Intent intent = new Intent();
-                    intent.setAction(ACTION_CONNECTED);
-                    intent.putExtra(LOGGED_KEY, signedInAutomatically);
-                    LocalBroadcastManager.getInstance(RocketApp.this).sendBroadcast(intent);
-                });
+            public void onCompleted() {
+
             }
 
             @Override
-            public void onError(String error, String reason, String details) {
+            public void onError(Throwable e) {
+                Protocol.Error err = ((MeteorException) e).getError();
+                String error = err.getError();
+                String reason = err.getReason();
+                String details = err.getDetails();
+                Timber.d(error + ", " + reason + ", " + details);
+            }
 
+            @Override
+            public void onNext(Void aVoid) {
+                String appId = LoginServiceConfiguration.query(LoginService.FACEBOOK);
+                if (!TextUtils.isEmpty(appId)) {
+                    FacebookSdk.setApplicationId(appId);
+                }
+                Intent intent = new Intent();
+                intent.setAction(ACTION_CONNECTED);
+                intent.putExtra(LOGGED_KEY, signedInAutomatically);
+                LocalBroadcastManager.getInstance(RocketApp.this).sendBroadcast(intent);
             }
         });
 
-        SubscribeListener listener = new LogSubscribeListener() {
-            @Override
-            public void onSuccess() {
-                super.onSuccess();
-            }
 
-            @Override
-            public void onError(String error, String reason, String details) {
-                super.onError(error, reason, details);
-            }
-        };
-
+        ResultListener listener = new LogListener();
         subs.settings(listener);
 
         subs.streamNotifyRoom(listener);
@@ -155,14 +183,12 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
     }
 
-    @Override
     public void onDisconnect(int code, String reason) {
         Intent intent = new Intent();
         intent.setAction(ACTION_DISCONNECTED);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    @Override
     public void onDataAdded(String collectionName, String documentID, String newValuesJson) {
         switch (collectionName) {
             case StreamMessages.COLLECTION_NAME:
@@ -204,7 +230,6 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
 
     }
 
-    @Override
     public void onDataChanged(String collectionName, String documentID, String updatedValuesJson, String removedValuesJson) {
         //TODO: update the data that changed in the right table
         // I think I will not be able to use GSON, probable manual parsing and updating only the needed fields
@@ -232,13 +257,29 @@ public class RocketApp extends Application implements Persistence, MeteorCallbac
         }
     }
 
-    @Override
     public void onDataRemoved(String collectionName, String documentID) {
         new CollectionDAO(collectionName, documentID, null).remove();
     }
 
-    @Override
-    public void onException(Exception e) {
+    public void onException(Throwable e) {
         Crashlytics.logException(e);
+    }
+
+    @Override
+    public String getString(String key) {
+        return PreferenceManager.getDefaultSharedPreferences(this).getString(key, null);
+    }
+
+    @Override
+    public void putString(String key, String value) {
+        PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, value).apply();
+    }
+
+    public MeteorSingleton getMeteor() {
+        return mMeteor;
+    }
+
+    public RxMeteor getRxMeteor() {
+        return mRxMeteor;
     }
 }

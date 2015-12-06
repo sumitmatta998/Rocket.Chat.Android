@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import chat.rocket.app.enumerations.NotifyActionType;
+import chat.rocket.rc.enumerations.NotifyActionType;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.models.RtcMedia;
 

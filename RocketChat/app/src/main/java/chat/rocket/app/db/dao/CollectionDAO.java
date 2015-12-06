@@ -20,7 +20,7 @@ import chat.rocket.app.utils.Util;
  * Created by julio on 22/11/15.
  */
 public class CollectionDAO implements ContentValuables {
-    private static LruCache<String, LruCache<String, CollectionDAO>> mCache = new LruCache<>(5);
+    private static LruCache<String, LruCache<String, CollectionDAO>> mCache = new LruCache<>(15);
 
     public static final String TABLE_NAME = "collections";
     // android internal value, to be used with cursors
@@ -73,6 +73,12 @@ public class CollectionDAO implements ContentValuables {
 
     public static List<CollectionDAO> query(String collectionName) {
         List<CollectionDAO> list = new ArrayList<>();
+        LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
+        if (cache != null && cache.size() > 0) {
+            list.addAll(cache.snapshot().values());
+            return list;
+        }
+
         Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_COLLECTION_NAME + "=?", new String[]{collectionName});
         if (cursor != null) {
             if (cursor.getCount() > 0) {
@@ -111,16 +117,32 @@ public class CollectionDAO implements ContentValuables {
 
     public void insert() {
         insertIntoCache();
-        DBManager.getInstance().insert(TABLE_NAME, this);
+        DBManager.getInstance().insert(TABLE_NAME, this, new DBManager.OnInsert() {
+            @Override
+            public void onInsertComplete() {
+                removeFromCache();
+            }
+        });
+    }
+
+    private void removeFromCache() {
+        synchronized (mCache) {
+            LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
+            if (cache != null) {
+                cache.remove(documentID);
+            }
+        }
     }
 
     private void insertIntoCache() {
-        LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
-        if (cache == null) {
-            cache = new LruCache<>(20);
-            mCache.put(collectionName, cache);
+        synchronized (mCache) {
+            LruCache<String, CollectionDAO> cache = mCache.get(collectionName);
+            if (cache == null) {
+                cache = new LruCache<>(50);
+                mCache.put(collectionName, cache);
+            }
+            cache.put(documentID, this);
         }
-        cache.put(documentID, this);
     }
 
     public void update() {

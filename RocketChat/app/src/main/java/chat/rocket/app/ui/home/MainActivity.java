@@ -3,27 +3,26 @@ package chat.rocket.app.ui.home;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Gravity;
-import android.view.View;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.operations.Subscription;
-import chat.rocket.operations.meteor.SubscribeListener;
-import chat.rocket.operations.methods.listeners.LogSubscribeListener;
+import chat.rocket.rc.listeners.LogListener;
+import meteor.operations.ResultListener;
+import meteor.operations.Subscription;
 
 public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
 
-    private SubscribeListener mFilteredUsersListener = new LogSubscribeListener();
+    private ResultListener mFilteredUsersListener = new LogListener();
     private Subscription mFilteredUsersSubscription;
 
-    private SubscribeListener mChannelAutocompleteListener = new LogSubscribeListener();
+    private ResultListener mChannelAutocompleteListener = new LogListener();
     private Subscription mChannelAutocompleteSubscription;
 
-    private SubscribeListener mStreamMessagesListener = new LogSubscribeListener();
+    private ResultListener mStreamMessagesListener = new LogListener();
     private Subscription mStreamMessagesSubscription;
 
-    private SubscribeListener mFullUserDataListener = new LogSubscribeListener();
+    private ResultListener mFullUserDataListener = new LogListener();
     private Subscription mFullUserDataSubscription;
 
 

@@ -2,7 +2,7 @@ package chat.rocket.app.db.collections;
 
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.utils.Util;
-import chat.rocket.models.Message;
+import chat.rocket.rc.models.Message;
 
 /**
  * Created by julio on 27/11/15.

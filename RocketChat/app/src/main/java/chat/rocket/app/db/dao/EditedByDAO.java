@@ -3,7 +3,7 @@ package chat.rocket.app.db.dao;
 import android.database.Cursor;
 
 import chat.rocket.app.db.util.ContentValuables;
-import chat.rocket.models.UsernameId;
+import chat.rocket.rc.models.UsernameId;
 
 /**
  * Created by julio on 29/11/15.

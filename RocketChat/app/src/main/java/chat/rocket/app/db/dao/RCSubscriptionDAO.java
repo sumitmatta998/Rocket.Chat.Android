@@ -13,9 +13,9 @@ import chat.rocket.app.db.DBContentProvider;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
-import chat.rocket.app.enumerations.ChannelType;
 import chat.rocket.models.RCSubscription;
-import chat.rocket.models.TimeStamp;
+import chat.rocket.rc.enumerations.ChannelType;
+import chat.rocket.rc.models.TimeStamp;
 
 import static chat.rocket.app.db.util.TableBuilder.INTEGER;
 import static chat.rocket.app.db.util.TableBuilder.ON_CONFLICT_REPLACE;
@@ -100,7 +100,7 @@ public class RCSubscriptionDAO extends RCSubscription implements ContentValuable
 
     public void insert(String documentId) {
         this.documentId = documentId;
-        DBManager.getInstance().insert(TABLE_NAME, this);
+        DBManager.getInstance().insert(TABLE_NAME, this, null);
     }
 
     public void update(String documentId, String json) {

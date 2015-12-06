@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.rocket.app.db.dao.CollectionDAO;
-import chat.rocket.app.enumerations.LoginService;
+import chat.rocket.rc.enumerations.LoginService;
 import chat.rocket.app.utils.Util;
 
 /**

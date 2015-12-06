@@ -14,7 +14,7 @@ import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
 import chat.rocket.app.utils.Util;
-import chat.rocket.models.UrlParts;
+import chat.rocket.rc.models.UrlParts;
 
 import static chat.rocket.app.db.util.TableBuilder.TEXT;
 

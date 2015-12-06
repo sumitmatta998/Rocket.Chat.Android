@@ -4,8 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import chat.rocket.app.enumerations.ChannelType;
-import chat.rocket.models.UsernameId;
+import chat.rocket.rc.enumerations.ChannelType;
+import chat.rocket.rc.models.UsernameId;
 
 /**
  * Created by julio on 29/11/15.

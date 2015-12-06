@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
-import chat.rocket.app.enumerations.ChannelType;
+import chat.rocket.rc.enumerations.ChannelType;
+import chat.rocket.rc.models.TimeStamp;
 
 /**
  * Created by julio on 24/11/15.

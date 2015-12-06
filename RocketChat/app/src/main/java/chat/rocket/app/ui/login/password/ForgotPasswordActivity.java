@@ -6,7 +6,7 @@ import android.widget.Toast;
 
 import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
-import chat.rocket.operations.methods.listeners.SendForgotPasswordEmailListener;
+import chat.rocket.rc.listeners.SendForgotPasswordEmailListener;
 
 /**
  * Created by julio on 22/11/15.
@@ -28,10 +28,6 @@ public class ForgotPasswordActivity extends BaseActivity {
     private void resetPassword(String email) {
 
         mRocketMethods.sendForgotPasswordEmail(email, new SendForgotPasswordEmailListener() {
-            @Override
-            public void onError(String error, String reason, String details) {
-
-            }
 
             @Override
             public void onResult(Boolean result) {

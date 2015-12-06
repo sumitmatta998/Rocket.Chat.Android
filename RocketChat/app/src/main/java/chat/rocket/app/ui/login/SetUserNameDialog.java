@@ -13,8 +13,10 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import chat.rocket.app.R;
-import chat.rocket.operations.methods.RocketMethods;
-import chat.rocket.operations.methods.listeners.LogListener;
+import chat.rocket.rc.RocketMethods;
+import chat.rocket.rc.listeners.LogListener;
+import meteor.operations.MeteorException;
+import meteor.operations.Protocol;
 
 /**
  * Created by julio on 25/11/15.
@@ -69,7 +71,7 @@ public class SetUserNameDialog extends DialogFragment {
     }
 
     private void setUsername(String name) {
-        mCallback.getRocketMethods().setUsername(name, new LogListener("saveuserprofile") {
+        mCallback.getRocketMethods().setUsername(name, new LogListener() {
             @Override
             public void onSuccess(String result) {
                 super.onSuccess(result);
@@ -78,8 +80,12 @@ public class SetUserNameDialog extends DialogFragment {
             }
 
             @Override
-            public void onError(String error, String reason, String details) {
-                super.onError(error, reason, details);
+            public void onError(MeteorException e) {
+                super.onError(e);
+                Protocol.Error err = e.getError();
+                String error = err.getError();
+                String reason = err.getReason();
+                String details = err.getDetails();
                 mUsernameTextInputLayout.setErrorEnabled(true);
                 mUsernameTextInputLayout.setError(error + ", " + reason + ", " + details);
             }
