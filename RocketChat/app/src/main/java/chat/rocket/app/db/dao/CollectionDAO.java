@@ -161,7 +161,10 @@ public class CollectionDAO implements ContentValuables {
     }
 
     public CollectionDAO plusUpdatedValues(String updatedValuesJson) throws JSONException {
-        newValuesJson = Util.deepMerge(new JSONObject(this.newValuesJson), new JSONObject(updatedValuesJson)).toString();
+        if (updatedValuesJson != null) {
+            newValuesJson = Util.deepMerge(new JSONObject(this.newValuesJson), new JSONObject(updatedValuesJson)).toString();
+        }
+
         return this;
     }
 

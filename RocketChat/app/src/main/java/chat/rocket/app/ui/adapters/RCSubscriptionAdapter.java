@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import chat.rocket.app.db.dao.RCSubscriptionDAO;
+import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.models.RCSubscription;
 
 /**
@@ -26,7 +26,7 @@ public class RCSubscriptionAdapter extends CursorAdapter {
     }
 
     public RCSubscription getItem(Cursor cursor) {
-        return new RCSubscriptionDAO(cursor);
+        return new RcSubscriptionDAO(cursor);
     }
 
     public RCSubscription getItem(int position) {

@@ -65,10 +65,9 @@ public class FabMenuLayout extends RevealFrameLayout {
 
     private void init() {
         LayoutInflater.from(getContext()).inflate(R.layout.fab_menu_internal_layout, this, true);
-        mMenu = findViewById(R.id.fabtoolbar);
+        mMenu = findViewById(R.id.FabToolBar);
         mMenuWdidth = (int) getResources().getDimension(R.dimen.fab_menu_width);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-
 
         mFab.setOnClickListener(view -> {
 
@@ -119,7 +118,7 @@ public class FabMenuLayout extends RevealFrameLayout {
                     @Override
                     public void onAnimationEnd(Animator animation) {
 
-                        sendFabToTop();
+                        translateFabToTop();
 
                         int cx = (int) (mFab.getX());
                         int cy = (int) (mFab.getY());
@@ -136,132 +135,6 @@ public class FabMenuLayout extends RevealFrameLayout {
                     }
                 }).start();
 
-    }
-
-    private void sendFabToTop() {
-        mFabAnimation.setListener(null);
-        float y = 0;
-        if (mTopView != null) {
-            y = mTopView.getY() + mFab.getPaddingTop() - mFab.getY();
-        }
-
-        mFab.animate().translationY(y).setDuration(500).start();
-    }
-
-    private void createReveal(int cx, int cy, float initialRadius, float finalRadius) {
-        mMenuAnimator = ViewAnimationUtils.createCircularReveal(mMenu, cx, cy, initialRadius, finalRadius);
-        mMenuAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-        mMenuAnimator.setDuration(500);
-        mMenuAnimator.addListener(new SupportAnimator.AnimatorListener() {
-            @Override
-            public void onAnimationStart() {
-                mMenu.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAnimationEnd() {
-            }
-
-            @Override
-            public void onAnimationCancel() {
-            }
-
-            @Override
-            public void onAnimationRepeat() {
-            }
-        });
-        mMenuAnimator.start();
-    }
-
-
-    public boolean onBackPressed() {
-        if (mMenuAnimator != null) {
-            if (!mMenuAnimator.isRunning()) {
-                rotateFabTo90();
-                ((ViewGroup) findViewById(R.id.MenuContentLayout)).removeAllViews();
-                return true;
-            } else {
-                mMenuAnimator.cancel();
-                mMenuAnimator = null;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void rotateFabTo90() {
-        mFabAnimation.setListener(null);
-        mFab.animate().rotation(90).setListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mFabAnimation.setListener(null);
-                translateMenuToBottom();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        }).start();
-    }
-
-    private void translateMenuToBottom() {
-        SupportAnimator reverseMenuAnimator = mMenuAnimator.reverse();
-        mMenuAnimator = null;
-        reverseMenuAnimator.setDuration(700);
-        reverseMenuAnimator.addListener(new SupportAnimator.AnimatorListener() {
-            @Override
-            public void onAnimationStart() {
-                translateFabToBottom();
-            }
-
-            @Override
-            public void onAnimationEnd() {
-                mMenu.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationCancel() {
-            }
-
-            @Override
-            public void onAnimationRepeat() {
-            }
-        });
-        reverseMenuAnimator.start();
-    }
-
-    private void translateFabToBottom() {
-        mFab.animate().translationX(0).translationY(0).setDuration(500).setInterpolator(new AccelerateDecelerateInterpolator())
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        rotateFabToZero();
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-                    }
-                })
-                .start();
     }
 
     private void rotateFabToZero() {
@@ -289,51 +162,162 @@ public class FabMenuLayout extends RevealFrameLayout {
         }).start();
     }
 
+    private void rotateFabTo90() {
+        mFabAnimation.setListener(null);
+        mFab.animate().rotation(90).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mFabAnimation.setListener(null);
+                createReverseReveal();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        }).start();
+    }
+
+    private void translateFabToBottom() {
+        mFab.animate().translationX(0).translationY(0).setDuration(500).setInterpolator(new AccelerateDecelerateInterpolator())
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        rotateFabToZero();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                    }
+                })
+                .start();
+    }
+
+    private void translateFabToTop() {
+        mFabAnimation.setListener(null);
+        float y = 0;
+        if (mTopView != null) {
+            y = mTopView.getY() + mFab.getPaddingTop() - mFab.getY();
+        }
+
+        mFab.animate().translationY(y).setDuration(500).start();
+    }
+
+    private void createReverseReveal() {
+        SupportAnimator reverseMenuAnimator = mMenuAnimator.reverse();
+        mMenuAnimator = null;
+        reverseMenuAnimator.setDuration(700);
+        reverseMenuAnimator.addListener(new SupportAnimator.AnimatorListener() {
+            @Override
+            public void onAnimationStart() {
+                translateFabToBottom();
+            }
+
+            @Override
+            public void onAnimationEnd() {
+                mMenu.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationCancel() {
+            }
+
+            @Override
+            public void onAnimationRepeat() {
+            }
+        });
+        reverseMenuAnimator.start();
+    }
+
+    private void createReveal(int cx, int cy, float initialRadius, float finalRadius) {
+        mMenuAnimator = ViewAnimationUtils.createCircularReveal(mMenu, cx, cy, initialRadius, finalRadius);
+        mMenuAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mMenuAnimator.setDuration(500);
+        mMenuAnimator.addListener(new SupportAnimator.AnimatorListener() {
+            @Override
+            public void onAnimationStart() {
+                mMenu.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd() {
+            }
+
+            @Override
+            public void onAnimationCancel() {
+            }
+
+            @Override
+            public void onAnimationRepeat() {
+            }
+        });
+        mMenuAnimator.start();
+    }
+
     private void setContentMargin() {
         if (mContentView != null) {
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
             mContentView.setTag(params.rightMargin);
-            ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, mMenuWdidth);
+            params.setMargins(params.leftMargin, params.topMargin, mMenuWdidth, params.bottomMargin);
+            mContentView.setLayoutParams(params);
+            /*ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, mMenuWdidth);
             anim.addUpdateListener(animation -> {
                 int rightMargin = (int) animation.getAnimatedValue();
                 params.setMargins(params.leftMargin, params.topMargin, rightMargin, params.bottomMargin);
                 mContentView.setLayoutParams(params);
             });
-            anim.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    rotateFabToLess90();
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-
-                }
-            });
-            anim.start();
+            anim.start();*/
+            rotateFabToLess90();
         }
     }
 
     private void restoreContentMargin() {
         if (mContentView != null) {
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
-            ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, (int) mContentView.getTag());
+            params.setMargins(params.leftMargin, params.topMargin, (int) mContentView.getTag(), params.bottomMargin);
+            mContentView.setLayoutParams(params);
+            /*ValueAnimator anim = ValueAnimator.ofInt(params.rightMargin, (int) mContentView.getTag());
             anim.addUpdateListener(animation -> {
                 int rightMargin = (int) animation.getAnimatedValue();
                 params.setMargins(params.leftMargin, params.topMargin, rightMargin, params.bottomMargin);
                 mContentView.setLayoutParams(params);
             });
-            anim.start();
+            anim.start();*/
         }
     }
+
+    public boolean onBackPressed() {
+        if (mMenuAnimator != null) {
+            if (!mMenuAnimator.isRunning()) {
+                rotateFabTo90();
+                ((ViewGroup) findViewById(R.id.MenuContentLayout)).removeAllViews();
+                return true;
+            } else {
+                mMenuAnimator.cancel();
+                mMenuAnimator = null;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }

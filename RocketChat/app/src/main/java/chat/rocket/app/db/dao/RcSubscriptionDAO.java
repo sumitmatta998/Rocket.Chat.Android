@@ -24,7 +24,7 @@ import static chat.rocket.app.db.util.TableBuilder.TEXT;
 /**
  * Created by julio on 01/12/15.
  */
-public class RCSubscriptionDAO extends RCSubscription implements ContentValuables {
+public class RcSubscriptionDAO extends RCSubscription implements ContentValuables {
 
     public static final String COLLECTION_NAME = "rocketchat_subscription";
 
@@ -58,7 +58,7 @@ public class RCSubscriptionDAO extends RCSubscription implements ContentValuable
 
     private String documentId;
 
-    public RCSubscriptionDAO(Cursor cursor) {
+    public RcSubscriptionDAO(Cursor cursor) {
         alert = cursor.getInt(cursor.getColumnIndex(COLUMN_ALERT)) > 0;
         long time = cursor.getLong(cursor.getColumnIndex(COLUMN_LS));
         if (time != 0) {
@@ -118,12 +118,12 @@ public class RCSubscriptionDAO extends RCSubscription implements ContentValuable
         DBManager.getInstance().update(TABLE_NAME, this, COLUMN_DOC_ID + "=?", new String[]{documentId});
     }
 
-    public static RCSubscriptionDAO get(String documentID) {
+    public static RcSubscriptionDAO get(String documentID) {
         Cursor cursor = DBManager.getInstance().query(TABLE_NAME, null, COLUMN_DOC_ID + "=?", new String[]{documentID});
-        RCSubscriptionDAO rcSub = null;
+        RcSubscriptionDAO rcSub = null;
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                rcSub = new RCSubscriptionDAO(cursor);
+                rcSub = new RcSubscriptionDAO(cursor);
             }
             cursor.close();
         }

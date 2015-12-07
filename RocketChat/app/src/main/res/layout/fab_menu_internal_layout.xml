@@ -21,7 +21,7 @@
         android:animateLayoutChanges="true" />
 
     <LinearLayout
-        android:id="@+id/fabtoolbar"
+        android:id="@+id/FabToolBar"
         android:layout_width="@dimen/fab_menu_width"
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
@@ -33,7 +33,7 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:id="@+id/innerFabLayout"
+            android:id="@+id/InnerFabLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">

@@ -19,7 +19,7 @@ import chat.rocket.app.db.collections.StreamMessages;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.MessageDAO;
-import chat.rocket.app.db.dao.RCSubscriptionDAO;
+import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.rc.RocketSubscriptions;
@@ -204,30 +204,11 @@ public class RocketApp extends Application implements Persistence {
     public void onDataAdded(String collectionName, String documentID, String newValuesJson) {
         switch (collectionName) {
             case StreamMessages.COLLECTION_NAME:
-                Observable.create((OnSubscribe<StreamMessages>) subscriber -> {
-                    StreamMessages msg = Util.GSON.fromJson(newValuesJson, StreamMessages.class);
-                    msg.parseArgs();
-                    subscriber.onNext(msg);
-                    subscriber.onCompleted();
-                })
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(msg -> {
-                            msg.insert();
-                        });
+                addStreamMessages(documentID, newValuesJson);
                 break;
-            case RCSubscriptionDAO.COLLECTION_NAME:
-                Observable.create((OnSubscribe<RCSubscriptionDAO>) subscriber -> {
-                    RCSubscriptionDAO sub = Util.GSON.fromJson(newValuesJson, RCSubscriptionDAO.class);
-                    subscriber.onNext(sub);
-                    subscriber.onCompleted();
-                })
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(sub -> {
-                            sub.insert(documentID);
-                        });
+            case RcSubscriptionDAO.COLLECTION_NAME:
 
+                addRcSubscription(documentID, newValuesJson);
                 break;
             case StreamNotifyRoom.COLLECTION_NAME:
                 Observable.create((OnSubscribe<StreamNotifyRoom>) subscriber -> {
@@ -256,6 +237,33 @@ public class RocketApp extends Application implements Persistence {
         }
     }
 
+    private void addRcSubscription(String documentID, String newValuesJson) {
+        Observable.create((OnSubscribe<RcSubscriptionDAO>) subscriber -> {
+            RcSubscriptionDAO sub = Util.GSON.fromJson(newValuesJson, RcSubscriptionDAO.class);
+            subscriber.onNext(sub);
+            subscriber.onCompleted();
+        })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(sub -> {
+                    sub.insert(documentID);
+                });
+    }
+
+    private void addStreamMessages(String documentID, String newValuesJson) {
+        Observable.create((OnSubscribe<StreamMessages>) subscriber -> {
+            StreamMessages msg = Util.GSON.fromJson(newValuesJson, StreamMessages.class);
+            msg.parseArgs();
+            subscriber.onNext(msg);
+            subscriber.onCompleted();
+        })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(msg -> {
+                    msg.insert();
+                });
+    }
+
     private void executeRoomNotification(NotifyRoom notifyRoom) {
         String rid = notifyRoom.getRid();
         if (!TextUtils.isEmpty(rid)) {
@@ -272,27 +280,19 @@ public class RocketApp extends Application implements Persistence {
         // I think I will not be able to use GSON, probable manual parsing and updating only the needed fields
 
         switch (collectionName) {
-            case RCSubscriptionDAO.COLLECTION_NAME:
-                Observable.create(new OnSubscribe<RCSubscriptionDAO>() {
-                    @Override
-                    public void call(Subscriber<? super RCSubscriptionDAO> subscriber) {
-                        RCSubscriptionDAO rcSub = RCSubscriptionDAO.get(documentID);
-                        subscriber.onNext(rcSub);
-                        subscriber.onCompleted();
-                    }
-                })
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(rcSub -> {
-                            if (rcSub != null) {
-                                rcSub.update(documentID, updatedValuesJson);
-                            }
-                        });
+            case RcSubscriptionDAO.COLLECTION_NAME:
+                updateRcSubscription(documentID, updatedValuesJson);
                 return;
             case StreamNotifyRoom.COLLECTION_NAME:
+                //ignore
                 break;
         }
 
+        updateCollectionDAO(collectionName, documentID, updatedValuesJson, removedValuesJson);
+
+    }
+
+    private void updateCollectionDAO(String collectionName, String documentID, String updatedValuesJson, String removedValuesJson) {
         Observable.create(new OnSubscribe<CollectionDAO>() {
             @Override
             public void call(Subscriber<? super CollectionDAO> subscriber) {
@@ -317,7 +317,24 @@ public class RocketApp extends Application implements Persistence {
                         new CollectionDAO(collectionName, documentID, updatedValuesJson).insert();
                     }
                 });
+    }
 
+    private void updateRcSubscription(final String documentID, final String updatedValuesJson) {
+        Observable.create(new OnSubscribe<RcSubscriptionDAO>() {
+            @Override
+            public void call(Subscriber<? super RcSubscriptionDAO> subscriber) {
+                RcSubscriptionDAO rcSub = RcSubscriptionDAO.get(documentID);
+                subscriber.onNext(rcSub);
+                subscriber.onCompleted();
+            }
+        })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(rcSub -> {
+                    if (rcSub != null) {
+                        rcSub.update(documentID, updatedValuesJson);
+                    }
+                });
     }
 
     public void onDataRemoved(String collectionName, String documentID) {

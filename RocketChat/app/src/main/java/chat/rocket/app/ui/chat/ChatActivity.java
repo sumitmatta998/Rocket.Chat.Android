@@ -236,7 +236,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                onBackPressed();
+                super.onBackPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);

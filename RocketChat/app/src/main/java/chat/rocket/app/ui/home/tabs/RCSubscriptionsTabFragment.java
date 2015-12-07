@@ -14,7 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import chat.rocket.app.R;
-import chat.rocket.app.db.dao.RCSubscriptionDAO;
+import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.app.ui.adapters.RCSubscriptionAdapter;
 import chat.rocket.app.ui.chat.ChatActivity;
 import chat.rocket.models.RCSubscription;
@@ -51,7 +51,7 @@ public class RCSubscriptionsTabFragment extends Fragment implements LoaderManage
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return RCSubscriptionDAO.getLoader();
+        return RcSubscriptionDAO.getLoader();
     }
 
     @Override

@@ -25,7 +25,7 @@ import android.util.Log;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.EditedByDAO;
 import chat.rocket.app.db.dao.MessageDAO;
-import chat.rocket.app.db.dao.RCSubscriptionDAO;
+import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.app.db.dao.UrlPartsDAO;
 import chat.rocket.app.db.dao.UsernameIdDAO;
 import chat.rocket.app.db.util.TableBuilder;
@@ -70,7 +70,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             db.execSQL(MessageDAO.createTableString());
             db.execSQL(UrlPartsDAO.createTableString());
             db.execSQL(UsernameIdDAO.createTableString());
-            db.execSQL(RCSubscriptionDAO.createTableString());
+            db.execSQL(RcSubscriptionDAO.createTableString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,7 +85,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + MessageDAO.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + UrlPartsDAO.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + UsernameIdDAO.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + RCSubscriptionDAO.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + RcSubscriptionDAO.TABLE_NAME);
         onCreate(db);
     }
 }
