@@ -152,7 +152,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             if (file.exists()) {
                 String str = decodeFile(file);
                 if (str != null) {
-                    String[] parts = str.split("(?<=\\G.{4})");
+                    String[] parts = str.split("(?<=\\G.{1024})");
                     processUpload(file.getName(), file.length(), parts);
                 }
             }
@@ -161,7 +161,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
     private void processUpload(String name, long size, String[] parts) {
         mRxRocketMethods.uploadFile("https://" + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
-                mRcSubscription.getRid(), name, parts, "audio/3gp", "3gp", size)
+                mRcSubscription.getRid(), name, parts, "audio/m4", "mp4", size)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Float>() {

@@ -44,7 +44,7 @@ public class AudioRecordActivity extends AppCompatActivity {
     private static final int MAX_DURATION = 10000;
     public static final String FILE_PATH = "file_path";
     private static final int RECORDING_REQUEST_CODE = 122;
-    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecordtest.3gp";
+    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecordtest.mp4";
     private MediaRecorder mRecorder = null;
     private MediaPlayer mPlayer = null;
     private SeekBar mSeekBar;
@@ -102,7 +102,7 @@ public class AudioRecordActivity extends AppCompatActivity {
     private void startRecording() {
         mRecorder = new MediaRecorder();
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mRecorder.setOutputFile(mFileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mRecorder.setMaxDuration(MAX_DURATION);

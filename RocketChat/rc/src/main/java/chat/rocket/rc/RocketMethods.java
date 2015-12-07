@@ -2,7 +2,6 @@ package chat.rocket.rc;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import chat.rocket.rc.listeners.AddUserToRoomListener;
 import chat.rocket.rc.listeners.ArchiveRoomListener;
@@ -328,17 +327,14 @@ public class RocketMethods {
                            final long size, final FileUploadListener listener) {
         final String store = "rocketchat_uploads";
         //TODO: What is this id?
-        final String id = "some id that I need to figure out";
-
-        //TODO: How to generate this random value
-        final byte[] random = new byte[10];
-        new Random(System.currentTimeMillis()).nextBytes(random);
+        final String id = mMeteor.uniqueID().replace("-", "").substring(0, 17);
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("name", name);
         data.put("size", size);
         data.put("type", type);
         data.put("rid", rid);
+        data.put("_id", id);
         data.put("complete", false);
         data.put("uploading", true);
         data.put("store", store);
@@ -348,8 +344,8 @@ public class RocketMethods {
         final ResultListener ufsCompletelistener = new ResultListener() {
             @Override
             public void onSuccess(String result) {
-                //TODO: understand how to properly create this msg
-                String msg = "File Uploaded: " + name + host + "ufs/rocketchat_uploads/" + id + extension;
+
+                String msg = "*File Uploaded*: " + name + "\n" + host + "/ufs/rocketchat_uploads/" + id;
                 Map<String, Object> data = new HashMap<String, Object>();
 
                 data.put("rid", rid);
@@ -388,7 +384,7 @@ public class RocketMethods {
             }
         };
 
-        mMeteor.insert(store, random.toString(), data, ufsWriterListener);
+        mMeteor.insert(store, mMeteor.uniqueID().replace("-", "").substring(0, 17), data, ufsWriterListener);
     }
 
     public void ufsWrite(String binary, String id, String store, ResultListener listener) {
