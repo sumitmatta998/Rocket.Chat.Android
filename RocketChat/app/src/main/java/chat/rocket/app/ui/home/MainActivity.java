@@ -9,58 +9,22 @@ import chat.rocket.app.R;
 import chat.rocket.app.ui.base.BaseActivity;
 import chat.rocket.operations.Subscription;
 import chat.rocket.operations.meteor.SubscribeListener;
+import chat.rocket.operations.methods.listeners.LogSubscribeListener;
 
 public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
 
-    private SubscribeListener mFilteredUsersListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
+    private SubscribeListener mFilteredUsersListener = new LogSubscribeListener();
     private Subscription mFilteredUsersSubscription;
-    private SubscribeListener mChannelAutocompleteListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
 
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
+    private SubscribeListener mChannelAutocompleteListener = new LogSubscribeListener();
     private Subscription mChannelAutocompleteSubscription;
-    private SubscribeListener mStreamMessagesListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
 
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
+    private SubscribeListener mStreamMessagesListener = new LogSubscribeListener();
     private Subscription mStreamMessagesSubscription;
+
+    private SubscribeListener mFullUserDataListener = new LogSubscribeListener();
     private Subscription mFullUserDataSubscription;
-    private SubscribeListener mFullUserDataListener = new SubscribeListener() {
-        @Override
-        public void onSuccess() {
-
-        }
-
-        @Override
-        public void onError(String error, String reason, String details) {
-
-        }
-    };
 
 
     @Override

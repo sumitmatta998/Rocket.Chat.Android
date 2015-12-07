@@ -96,6 +96,8 @@ public class FabMenuLayout extends RevealFrameLayout {
         findViewById(R.id.StaredButton).setOnClickListener(listener);
 
         findViewById(R.id.PinnedButton).setOnClickListener(listener);
+
+        findViewById(R.id.MicButton).setOnClickListener(listener);
     }
 
     private void rotateFabToLess90() {
