@@ -17,6 +17,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.skd.androidrecording.MainActivity;
+
 import java.io.File;
 import java.util.UnknownFormatConversionException;
 
@@ -213,6 +215,8 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         switch (id) {
             case R.id.SettingsButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new RoomSettingsFragment()).commit();
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
                 break;
             case R.id.SearchButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new SearchFragment()).commit();

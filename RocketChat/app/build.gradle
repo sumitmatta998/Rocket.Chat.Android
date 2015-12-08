@@ -60,10 +60,10 @@ android {
         }
         debug {
             minifyEnabled false
-            buildConfigField "String", "WS_HOST", "\"192.168.0.14:3000\""
-            buildConfigField "String", "WS_PROTOCOL", "\"ws\""
-            //buildConfigField "String", "WS_HOST", "\"demo.rocket.chat\""
-            //buildConfigField "String", "WS_PROTOCOL", "\"wss\""
+            //buildConfigField "String", "WS_HOST", "\"192.168.0.14:3000\""
+            //buildConfigField "String", "WS_PROTOCOL", "\"ws\""
+            buildConfigField "String", "WS_HOST", "\"demo.rocket.chat\""
+            buildConfigField "String", "WS_PROTOCOL", "\"wss\""
 
         }
     }
@@ -97,4 +97,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-gcm:8.3.0'
     compile project(':rxmeteor')
     compile project(':rxrc')
+    compile project(':androidrecording')
 }

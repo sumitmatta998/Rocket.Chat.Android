@@ -3,12 +3,8 @@ package chat.rocket.app.ui.chat.record;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -16,9 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +33,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 
 public class AudioRecordFragment extends Fragment {
@@ -46,7 +41,6 @@ public class AudioRecordFragment extends Fragment {
         void processFile(String filename);
     }
 
-    private static final String LOG_TAG = "AudioRecordActivity";
     private static final int MAX_DURATION = 10000;
     public static final String FILE_PATH = "file_path";
     private static final int RECORDING_REQUEST_CODE = 122;
@@ -95,7 +89,7 @@ public class AudioRecordFragment extends Fragment {
             mPlayer.start();
             startPlayProgress();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            Timber.d("prepare() failed");
         }
     }
 
@@ -117,7 +111,7 @@ public class AudioRecordFragment extends Fragment {
         try {
             mRecorder.prepare();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            Timber.d("prepare() failed");
         }
 
         mRecorder.start();
