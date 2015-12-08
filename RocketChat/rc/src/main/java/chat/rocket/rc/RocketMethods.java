@@ -370,7 +370,7 @@ public class RocketMethods {
             @Override
             public void onSuccess(String result) {
                 if (index < length) {
-                    listener.onProgress(index / length);
+                    listener.onProgress(index * 1.0f / length);
                     ufsWrite(strings[index], id, store, this);
                     index = index + 1;
                 } else {

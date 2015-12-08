@@ -68,7 +68,8 @@ public class RocketApp extends Application implements Persistence {
         } else {
             Fabric.with(this, new Crashlytics());
         }
-        mMeteor = MeteorSingleton.createInstance(this, BuildConfig.WS_URL, Meteor.SUPPORTED_DDP_VERSIONS[0]);
+        String url = BuildConfig.WS_PROTOCOL + "://" + BuildConfig.WS_HOST + BuildConfig.WS_PATH;
+        mMeteor = MeteorSingleton.createInstance(this, url, Meteor.SUPPORTED_DDP_VERSIONS[0]);
         mRxMeteor = new RxMeteor(mMeteor);
         FacebookSdk.sdkInitialize(getApplicationContext());
         DBManager.getInstance().init(this);

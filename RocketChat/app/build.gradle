@@ -40,6 +40,7 @@ android {
         //TODO: If file does not exist, allow the build to continue and set empty values
         buildConfigField "String", "TWITTER_KEY", twitterProperties['TWITTER_KEY']
         buildConfigField "String", "TWITTER_SECRET", twitterProperties['TWITTER_SECRET']
+        buildConfigField "String", "WS_PATH", "\"/websocket\""
     }
     signingConfigs {
         debug {
@@ -54,15 +55,15 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
             buildConfigField "String", "WS_HOST", "\"demo.rocket.chat\""
+            buildConfigField "String", "WS_PROTOCOL", "\"wss\""
         }
         debug {
             minifyEnabled false
-            //buildConfigField "String", "WS_HOST", "\"192.168.0.14:3000\""
-            //buildConfigField "String", "WS_URL", "\"ws://192.168.0.14:3000/websocket\""
-            buildConfigField "String", "WS_HOST", "\"demo.rocket.chat\""
-            buildConfigField "String", "WS_URL", "\"wss://demo.rocket.chat/websocket\""
+            buildConfigField "String", "WS_HOST", "\"192.168.0.14:3000\""
+            buildConfigField "String", "WS_PROTOCOL", "\"ws\""
+            //buildConfigField "String", "WS_HOST", "\"demo.rocket.chat\""
+            //buildConfigField "String", "WS_PROTOCOL", "\"wss\""
 
         }
     }

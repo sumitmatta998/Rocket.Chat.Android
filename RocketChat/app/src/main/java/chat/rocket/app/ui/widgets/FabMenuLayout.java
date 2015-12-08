@@ -1,7 +1,6 @@
 package chat.rocket.app.ui.widgets;
 
 import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
@@ -35,6 +34,7 @@ public class FabMenuLayout extends RevealFrameLayout {
     }
 
     private MenuClickListener mCallback;
+    private int mCurrentSelectedMenuItemId = -1;
 
     public void setMenuClickListener(MenuClickListener listener) {
         mCallback = listener;
@@ -50,16 +50,19 @@ public class FabMenuLayout extends RevealFrameLayout {
 
     public FabMenuLayout(Context context) {
         super(context);
-        init();
     }
 
     public FabMenuLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
     }
 
     public FabMenuLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
         init();
     }
 
@@ -78,9 +81,18 @@ public class FabMenuLayout extends RevealFrameLayout {
             }
         });
 
-        OnClickListener listener = v -> {
-            if (mCallback != null) {
-                mCallback.onMenuItemClick(v.getId());
+        OnClickListener listener = new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                if (mCallback != null) {
+                    if (v.getId() != mCurrentSelectedMenuItemId) {
+                        mCallback.onMenuItemClick(v.getId());
+                        mCurrentSelectedMenuItemId = v.getId();
+                    } else {
+                        onBackPressed();
+                    }
+                }
             }
         };
 
@@ -305,6 +317,12 @@ public class FabMenuLayout extends RevealFrameLayout {
     }
 
     public boolean onBackPressed() {
+        ViewGroup menuContent = ((ViewGroup) findViewById(R.id.MenuContentLayout));
+        if (menuContent.getChildCount() != 0) {
+            menuContent.removeAllViews();
+            mCurrentSelectedMenuItemId = -1;
+            return true;
+        }
         if (mMenuAnimator != null) {
             if (!mMenuAnimator.isRunning()) {
                 rotateFabTo90();

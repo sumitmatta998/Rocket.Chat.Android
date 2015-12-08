@@ -1,7 +1,7 @@
-package chat.rocket.app.ui.base;
+package chat.rocket.app.ui.chat.record;
 
 import android.Manifest;
-import android.content.Intent;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
@@ -11,15 +11,17 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -32,19 +34,23 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.R;
+import chat.rocket.app.utils.Util;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 
-public class AudioRecordActivity extends AppCompatActivity {
+public class AudioRecordFragment extends Fragment {
+    public interface AudioRecordCallback {
+        void processFile(String filename);
+    }
 
     private static final String LOG_TAG = "AudioRecordActivity";
     private static final int MAX_DURATION = 10000;
     public static final String FILE_PATH = "file_path";
     private static final int RECORDING_REQUEST_CODE = 122;
-    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecordtest.mp4";
+    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecord.mp4";
     private MediaRecorder mRecorder = null;
     private MediaPlayer mPlayer = null;
     private SeekBar mSeekBar;
@@ -58,6 +64,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         }
     };
     private View mSendButton;
+    private AudioRecordCallback mCallback;
 
     private void onRecord(boolean start) {
         mPlayButton.setEnabled(!start);
@@ -96,7 +103,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         mPlayer.release();
         mPlayer = null;
         unsubscribeTimer();
-        setTint(mSeekBar, getResources().getColor(R.color.accentColor));
+        Util.setTint(mSeekBar, getResources().getColor(R.color.accentColor));
     }
 
     private void startRecording() {
@@ -119,7 +126,7 @@ public class AudioRecordActivity extends AppCompatActivity {
 
     private void startPlayProgress() {
         mStartTime = new Date();
-        setTint(mSeekBar, getResources().getColor(R.color.primaryColor));
+        Util.setTint(mSeekBar, getResources().getColor(R.color.primaryColor));
         mTimerSubscription = Observable.interval(50, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -134,35 +141,9 @@ public class AudioRecordActivity extends AppCompatActivity {
                 });
     }
 
-    public static void setTint(SeekBar seekBar, int color) {
-        ColorStateList s1 = ColorStateList.valueOf(color);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            seekBar.setThumbTintList(s1);
-            seekBar.setProgressTintList(s1);
-        } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
-            Drawable progressDrawable = DrawableCompat.wrap(seekBar.getProgressDrawable());
-            seekBar.setProgressDrawable(progressDrawable);
-            DrawableCompat.setTintList(progressDrawable, s1);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                Drawable thumbDrawable = DrawableCompat.wrap(seekBar.getThumb());
-                DrawableCompat.setTintList(thumbDrawable, s1);
-                seekBar.setThumb(thumbDrawable);
-            }
-        } else {
-            PorterDuff.Mode mode = PorterDuff.Mode.SRC_IN;
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
-                mode = PorterDuff.Mode.MULTIPLY;
-            }
-            if (seekBar.getIndeterminateDrawable() != null)
-                seekBar.getIndeterminateDrawable().setColorFilter(color, mode);
-            if (seekBar.getProgressDrawable() != null)
-                seekBar.getProgressDrawable().setColorFilter(color, mode);
-        }
-    }
-
     private void startRecordProgress() {
         mStartTime = new Date();
-        setTint(mSeekBar, getResources().getColor(R.color.accentColor));
+        Util.setTint(mSeekBar, getResources().getColor(R.color.accentColor));
         mTimerSubscription = Observable.interval(50, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -223,29 +204,28 @@ public class AudioRecordActivity extends AppCompatActivity {
         }
     };
 
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_record);
-        mPlayButton = (Button) findViewById(R.id.PlayButton);
-        mRecordButton = (Button) findViewById(R.id.RecordButton);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_audio_record, container, false);
+    }
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mPlayButton = (Button) view.findViewById(R.id.PlayButton);
+        mRecordButton = (Button) view.findViewById(R.id.RecordButton);
 
         mPlayButton.setOnClickListener(mPlayButtonListener);
-        mSendButton = findViewById(R.id.SendButton);
+        mSendButton = view.findViewById(R.id.SendButton);
         mSendButton.setOnClickListener(v -> {
-
-            Intent intent = new Intent();
-            intent.putExtra(FILE_PATH, mFileName);
-            setResult(RESULT_OK, intent);
-            finish();
+            mCallback.processFile(mFileName);
 
         });
 
-        mProgressTextView = (TextView) findViewById(R.id.ProgressTextView);
+        mProgressTextView = (TextView) view.findViewById(R.id.ProgressTextView);
 
-        mSeekBar = (SeekBar) findViewById(R.id.SeekBar);
+        mSeekBar = (SeekBar) view.findViewById(R.id.SeekBar);
         mSeekBar.setMax(MAX_DURATION);
         mSeekBar.setOnTouchListener((v, event) -> true);
 
@@ -256,19 +236,19 @@ public class AudioRecordActivity extends AppCompatActivity {
 
     private void requestNeededPermissions() {
         List<String> permissions = new ArrayList<>();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.RECORD_AUDIO);
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
         if (permissions.isEmpty()) {
             mRecordButton.setOnClickListener(mRecordButtonListener);
         } else {
-            ActivityCompat.requestPermissions(AudioRecordActivity.this,
+            ActivityCompat.requestPermissions(getActivity(),
                     permissions.toArray(new String[0]),
                     RECORDING_REQUEST_CODE);
         }
@@ -284,7 +264,7 @@ public class AudioRecordActivity extends AppCompatActivity {
                     int result = grantResults[i];
                     if (result != PackageManager.PERMISSION_GRANTED) {
                         allGranted = false;
-                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])) {
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), permissions[i])) {
                             if (permissions[i].equals(Manifest.permission.RECORD_AUDIO)) {
                                 whatToAsk = "We need the audio recording permission to let you record your beautiful voice.";
                             }
@@ -308,8 +288,7 @@ public class AudioRecordActivity extends AppCompatActivity {
                     mRecordButton.setOnClickListener(mRecordButtonListener);
                 } else {
                     // TODO: Think in a better way to deal with it..
-                    Toast.makeText(this, "Permissions not granted...", Toast.LENGTH_LONG).show();
-                    finish();
+                    Toast.makeText(getContext(), "Permissions not granted...", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -332,12 +311,8 @@ public class AudioRecordActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallback = (AudioRecordCallback) context;
     }
 }

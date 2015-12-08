@@ -11,22 +11,22 @@ import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.util.UnknownFormatConversionException;
 
 import chat.rocket.app.BuildConfig;
 import chat.rocket.app.R;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
-import chat.rocket.app.ui.base.AudioRecordActivity;
 import chat.rocket.app.ui.base.BaseActivity;
+import chat.rocket.app.ui.chat.record.AudioRecordFragment;
 import chat.rocket.app.ui.home.menu.FileListFragment;
 import chat.rocket.app.ui.home.menu.MembersListFragment;
 import chat.rocket.app.ui.home.menu.PinnedMessagesFragment;
@@ -34,12 +34,13 @@ import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
 import chat.rocket.app.ui.home.menu.SearchFragment;
 import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
+import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
 import chat.rocket.models.RCSubscription;
 import chat.rocket.rc.models.Message;
-import io.fabric.sdk.android.services.network.HttpRequest;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
+import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -47,7 +48,7 @@ import rx.schedulers.Schedulers;
 /**
  * Created by julio on 29/11/15.
  */
-public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, AudioRecordFragment.AudioRecordCallback, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
@@ -71,6 +72,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             }
         }
     };
+    private ProgressBar mUploadProgress;
 
     @Override
     protected void onResume() {
@@ -93,7 +95,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         mRcSubscription = (RCSubscription) getIntent().getSerializableExtra(RC_SUB);
         mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
         mListView = (ListView) findViewById(R.id.listview);
-        mSendEditText = (EditText) findViewById(R.id.submitEditText);
+        mSendEditText = (EditText) findViewById(R.id.SubmitEditText);
         mFabMenu.setTopView(mListView);
         mFabMenu.setContentView(mListView);
         mFabMenu.setMenuClickListener(this);
@@ -110,7 +112,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
             }
             return false;
         });
-
+        mUploadProgress = (ProgressBar) findViewById(R.id.UploadProgress);
         mAdapter = new MessagesAdapter(this);
         mListView.setAdapter(mAdapter);
         int unread = mRcSubscription.getUnread();
@@ -143,31 +145,16 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RECORD_AUDIO_REQUEST_CODE && resultCode == RESULT_OK) {
-            String filePath = data.getStringExtra(AudioRecordActivity.FILE_PATH);
-            File file = new File(filePath);
-            if (file.exists()) {
-                String str = decodeFile(file);
-                if (str != null) {
-                    String[] parts = str.split("(?<=\\G.{1024})");
-                    processUpload(file.getName(), file.length(), parts);
-                }
-            }
-        }
-    }
-
-    private void processUpload(String name, long size, String[] parts) {
-        mRxRocketMethods.uploadFile("https://" + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
-                mRcSubscription.getRid(), name, parts, "audio/m4", "mp4", size)
+    private void uploadFile(String name, long size, String[] parts) {
+        String protocol = (BuildConfig.WS_PROTOCOL.equals("wss") ? "https://" : "http://");
+        mRxRocketMethods.uploadFile(protocol + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
+                mRcSubscription.getRid(), name, parts, "audio/wav", "wav", size)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Float>() {
                     @Override
                     public void onCompleted() {
-
+                        mUploadProgress.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -177,45 +164,17 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                         String reason = err.getReason();
                         String details = err.getDetails();
                         Log.d("upload - onError", error + ", " + reason + ", " + details);
+                        mUploadProgress.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onNext(Float progress) {
-                        Log.d("upload - onProgress", progress + "%");
+                        mUploadProgress.setProgress((int) (progress * 100));
                     }
                 });
 
     }
 
-    private String decodeFile(File file) {
-        String fileStr = null;
-        FileInputStream fis = null;
-        ByteArrayOutputStream baos = null;
-        try {
-            baos = new ByteArrayOutputStream();
-            fis = new FileInputStream(file);
-
-            byte[] buf = new byte[1024];
-            int n;
-            while (-1 != (n = fis.read(buf))) {
-                baos.write(buf, 0, n);
-            }
-            fileStr = HttpRequest.Base64.encodeBytes(baos.toByteArray());
-
-        } catch (Exception e) {
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                    if (baos != null) {
-                        baos.close();
-                    }
-                } catch (IOException e) {
-                }
-            }
-        }
-        return fileStr;
-    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -241,7 +200,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     @Override
     public void onBackPressed() {
@@ -272,12 +230,49 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new PinnedMessagesFragment()).commit();
                 break;
             case R.id.MicButton:
-                //TODO: migrate code to fragment and insert below the submitEditText..
-                Intent intent = new Intent(ChatActivity.this, AudioRecordActivity.class);
-                startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
+                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new AudioRecordFragment()).commit();
                 break;
 
         }
     }
 
+    @Override
+    public void processFile(String filePath) {
+        mFabMenu.onBackPressed();
+        mUploadProgress.setVisibility(View.VISIBLE);
+        File file = new File(filePath);
+        if (file.exists()) {
+            Observable.create(new Observable.OnSubscribe<String[]>() {
+                @Override
+                public void call(Subscriber<? super String[]> subscriber) {
+                    String str = Util.decodeFile(file);
+                    if (str != null) {
+                        subscriber.onNext(str.split("(?<=\\G.{1024})"));
+                        subscriber.onCompleted();
+                    } else {
+                        subscriber.onError(new UnknownFormatConversionException("failed to convert " + filePath + " to string"));
+                    }
+                }
+            })
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Subscriber<String[]>() {
+                        @Override
+                        public void onCompleted() {
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            mUploadProgress.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onNext(String[] strings) {
+                            ChatActivity.this.uploadFile(file.getName(), file.length(), strings);
+                        }
+                    });
+
+        }
+    }
 }

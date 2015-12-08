@@ -14,12 +14,6 @@
         android:src="@mipmap/ic_launcher"
         app:fabSize="mini" />
 
-    <FrameLayout
-        android:id="@+id/MenuContentLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:animateLayoutChanges="true" />
-
     <LinearLayout
         android:id="@+id/FabToolBar"
         android:layout_width="@dimen/fab_menu_width"
@@ -76,4 +70,12 @@
                 android:src="@drawable/ic_mic_24dp" />
         </LinearLayout>
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/MenuContentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/white" />
 </merge>
