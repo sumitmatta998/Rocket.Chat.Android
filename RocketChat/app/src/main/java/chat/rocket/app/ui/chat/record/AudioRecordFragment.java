@@ -40,6 +40,7 @@ import timber.log.Timber;
 
 
 public class AudioRecordFragment extends Fragment {
+    //TODO: why do I limit the recording time? I don't know, I will think about it... :-P
     private static final int MAX_DURATION = 10000;
 
     public interface AudioRecordCallback {

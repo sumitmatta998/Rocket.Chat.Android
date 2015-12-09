@@ -17,6 +17,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 import io.fabric.sdk.android.services.network.HttpRequest;
@@ -65,7 +67,13 @@ public class Util {
         }
         return target;
     }
-
+    public static Collection<String> splitStringBySize(String str, int size) {
+        ArrayList<String> split = new ArrayList<>();
+        for (int i = 0; i <= str.length() / size; i++) {
+            split.add(str.substring(i * size, Math.min((i + 1) * size, str.length())));
+        }
+        return split;
+    }
 
     public static String decodeFile(File file) {
         String fileStr = null;

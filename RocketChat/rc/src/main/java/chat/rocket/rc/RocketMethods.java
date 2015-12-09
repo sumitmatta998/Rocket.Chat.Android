@@ -27,6 +27,7 @@ import chat.rocket.rc.listeners.SendConfirmationEmailListener;
 import chat.rocket.rc.listeners.SendForgotPasswordEmailListener;
 import chat.rocket.rc.listeners.SendMessageListener;
 import chat.rocket.rc.listeners.UpdateMessageListener;
+import chat.rocket.rc.models.Message;
 import chat.rocket.rc.models.TimeStamp;
 import meteor.operations.Meteor;
 import meteor.operations.MeteorException;
@@ -171,9 +172,9 @@ public class RocketMethods {
         mMeteor.call("removeUserFromRoom", new Object[]{data}, listener);
     }
 
-    /*public void reportMessage(Message message, String description, ResultListener listener) {
+    public void reportMessage(Message message, String description, ResultListener listener) {
         mMeteor.call("removeUserFromRoom", new Object[]{message, description}, listener);
-    }*/
+    }
 
     public void resetAvatar(ResetAvatarListener listener) {
         mMeteor.call("resetAvatar", listener);

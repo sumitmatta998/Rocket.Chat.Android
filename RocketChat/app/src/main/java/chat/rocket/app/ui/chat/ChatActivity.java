@@ -18,11 +18,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
-import com.skd.androidrecording.MainActivity;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UnknownFormatConversionException;
 
@@ -220,10 +216,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        //Note: why it does not surprise me?  Workaround: https://code.google.com/p/android/issues/detail?id=189121
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment fragment : fragments) {
-                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                if (fragment != null) {
+                    fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                }
             }
         }
     }
@@ -233,8 +232,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         switch (id) {
             case R.id.SettingsButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new RoomSettingsFragment()).commit();
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(intent);
                 break;
             case R.id.SearchButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new SearchFragment()).commit();
@@ -258,13 +255,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
     }
 
-    private static Collection<String> splitStringBySize(String str, int size) {
-        ArrayList<String> split = new ArrayList<>();
-        for (int i = 0; i <= str.length() / size; i++) {
-            split.add(str.substring(i * size, Math.min((i + 1) * size, str.length())));
-        }
-        return split;
-    }
 
     @Override
     public void processFile(String filePath) {
@@ -277,7 +267,8 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 public void call(Subscriber<? super String[]> subscriber) {
                     String str = Util.decodeFile(file);
                     if (str != null) {
-                        subscriber.onNext(splitStringBySize(str, 4 * 8 * 1024).toArray(new String[0]));
+                        int chunkSize = 4 * 8 * 1024;
+                        subscriber.onNext(Util.splitStringBySize(str, chunkSize).toArray(new String[0]));
                         subscriber.onCompleted();
                     } else {
                         subscriber.onError(new UnknownFormatConversionException("failed to convert " + filePath + " to string"));
@@ -302,7 +293,6 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                             uploadFile(file.getName(), file.length(), strings);
                         }
                     });
-
         }
     }
 }
