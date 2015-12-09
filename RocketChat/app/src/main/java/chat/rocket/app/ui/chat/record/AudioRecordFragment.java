@@ -1,10 +1,10 @@
 package chat.rocket.app.ui.chat.record;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -20,6 +20,9 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.skd.androidrecording.audio.AudioRecordingHandler;
+import com.skd.androidrecording.audio.AudioRecordingThread;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,15 +40,18 @@ import timber.log.Timber;
 
 
 public class AudioRecordFragment extends Fragment {
+    private static final int MAX_DURATION = 10000;
+
     public interface AudioRecordCallback {
         void processFile(String filename);
     }
 
-    private static final int MAX_DURATION = 10000;
-    public static final String FILE_PATH = "file_path";
-    private static final int RECORDING_REQUEST_CODE = 122;
-    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecord.mp4";
-    private MediaRecorder mRecorder = null;
+
+    private AudioRecordingThread recordingThread;
+
+    private static final int RECORDING_REQUEST_CODE = 112;
+    private final String mFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audiorecord.wav";
+
     private MediaPlayer mPlayer = null;
     private SeekBar mSeekBar;
     private Subscription mTimerSubscription;
@@ -94,27 +100,49 @@ public class AudioRecordFragment extends Fragment {
     }
 
     private void stopPlaying() {
-        mPlayer.release();
-        mPlayer = null;
+        if (mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+        }
         unsubscribeTimer();
         Util.setTint(mSeekBar, getResources().getColor(R.color.accentColor));
     }
 
     private void startRecording() {
-        mRecorder = new MediaRecorder();
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setOutputFile(mFileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mRecorder.setMaxDuration(MAX_DURATION);
+        recordingThread = new AudioRecordingThread(mFileName, new AudioRecordingHandler() {
+            @Override
+            public void onFftDataCapture(final byte[] bytes) {
+                final Activity activity = getActivity();
+                if (activity == null) {
+                    return;
+                }
+            }
 
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            Timber.d("prepare() failed");
-        }
+            @Override
+            public void onRecordSuccess() {
+            }
 
-        mRecorder.start();
+            @Override
+            public void onRecordingError(Exception e) {
+                Timber.e(e, "Stoping recording due error!");
+                final Activity activity = getActivity();
+                if (activity == null) {
+                    return;
+                }
+                activity.runOnUiThread(() -> stopRecording());
+            }
+
+            @Override
+            public void onRecordSaveError(Exception e) {
+                Timber.e(e, "Error while trying to save recording...!");
+                Activity activity = getActivity();
+                if (activity == null) {
+                    return;
+                }
+                activity.runOnUiThread(() -> stopRecording());
+            }
+        });
+        recordingThread.start();
         startRecordProgress();
     }
 
@@ -160,9 +188,10 @@ public class AudioRecordFragment extends Fragment {
     }
 
     private void stopRecording() {
-        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;
+        if (recordingThread != null) {
+            recordingThread.stopRecording();
+            recordingThread = null;
+        }
         unsubscribeTimer();
 
     }
@@ -292,15 +321,8 @@ public class AudioRecordFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (mRecorder != null) {
-            mRecorder.release();
-            mRecorder = null;
-        }
-
-        if (mPlayer != null) {
-            mPlayer.release();
-            mPlayer = null;
-        }
+        stopRecording();
+        stopPlaying();
         unsubscribeTimer();
     }
 

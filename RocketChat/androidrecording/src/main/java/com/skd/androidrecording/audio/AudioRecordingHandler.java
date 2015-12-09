@@ -19,6 +19,6 @@ package com.skd.androidrecording.audio;
 public interface AudioRecordingHandler {
 	public void onFftDataCapture(byte[] bytes);
 	public void onRecordSuccess();
-	public void onRecordingError();
-	public void onRecordSaveError();
+	public void onRecordingError(Exception e);
+	public void onRecordSaveError(Exception e);
 }

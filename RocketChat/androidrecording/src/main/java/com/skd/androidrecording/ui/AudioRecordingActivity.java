@@ -124,7 +124,7 @@ public class AudioRecordingActivity extends Activity {
 			public void onRecordSuccess() {}
 
 			@Override
-			public void onRecordingError() {
+			public void onRecordingError(Exception e) {
 				runOnUiThread(new Runnable() {
 					public void run() {
 						recordStop();
@@ -134,7 +134,7 @@ public class AudioRecordingActivity extends Activity {
 			}
 
 			@Override
-			public void onRecordSaveError() {
+			public void onRecordSaveError(Exception e) {
 				runOnUiThread(new Runnable() {
 					public void run() {
 						recordStop();

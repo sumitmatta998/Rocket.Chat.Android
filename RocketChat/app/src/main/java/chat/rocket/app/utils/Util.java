@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -70,13 +71,16 @@ public class Util {
         String fileStr = null;
         FileInputStream fis = null;
         ByteArrayOutputStream baos = null;
+        BufferedInputStream bfis = null;
         try {
+
             baos = new ByteArrayOutputStream();
             fis = new FileInputStream(file);
+            bfis = new BufferedInputStream(fis);
 
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[1024 * 8];
             int n;
-            while (-1 != (n = fis.read(buf))) {
+            while (-1 != (n = bfis.read(buf))) {
                 baos.write(buf, 0, n);
             }
             fileStr = HttpRequest.Base64.encodeBytes(baos.toByteArray());
@@ -86,8 +90,22 @@ public class Util {
             if (fis != null) {
                 try {
                     fis.close();
+                    fis = null;
                     if (baos != null) {
                         baos.close();
+                        baos = null;
+                    }
+                } catch (IOException e) {
+                }
+            }
+
+            if (bfis != null) {
+                try {
+                    bfis.close();
+                    bfis = null;
+                    if (baos != null) {
+                        baos.close();
+                        baos = null;
                     }
                 } catch (IOException e) {
                 }

@@ -6,10 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -20,6 +21,9 @@ import android.widget.ProgressBar;
 import com.skd.androidrecording.MainActivity;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UnknownFormatConversionException;
 
 import chat.rocket.app.BuildConfig;
@@ -46,6 +50,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 /**
  * Created by julio on 29/11/15.
@@ -149,8 +154,9 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
     private void uploadFile(String name, long size, String[] parts) {
         String protocol = (BuildConfig.WS_PROTOCOL.equals("wss") ? "https://" : "http://");
+        String extension = name.substring(name.length() - 3);
         mRxRocketMethods.uploadFile(protocol + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
-                mRcSubscription.getRid(), name, parts, "audio/wav", "wav", size)
+                mRcSubscription.getRid(), name, parts, "audio/" + extension, extension, size)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Float>() {
@@ -165,12 +171,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                         String error = err.getError();
                         String reason = err.getReason();
                         String details = err.getDetails();
-                        Log.d("upload - onError", error + ", " + reason + ", " + details);
+                        Timber.e(e, "upload - onError" + error + ", " + reason + ", " + details);
                         mUploadProgress.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onNext(Float progress) {
+                        Timber.d("progress:" + progress);
                         mUploadProgress.setProgress((int) (progress * 100));
                     }
                 });
@@ -211,6 +218,17 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+    }
+
+    @Override
     public void onMenuItemClick(int id) {
         switch (id) {
             case R.id.SettingsButton:
@@ -240,6 +258,14 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
         }
     }
 
+    private static Collection<String> splitStringBySize(String str, int size) {
+        ArrayList<String> split = new ArrayList<>();
+        for (int i = 0; i <= str.length() / size; i++) {
+            split.add(str.substring(i * size, Math.min((i + 1) * size, str.length())));
+        }
+        return split;
+    }
+
     @Override
     public void processFile(String filePath) {
         mFabMenu.onBackPressed();
@@ -251,7 +277,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 public void call(Subscriber<? super String[]> subscriber) {
                     String str = Util.decodeFile(file);
                     if (str != null) {
-                        subscriber.onNext(str.split("(?<=\\G.{1024})"));
+                        subscriber.onNext(splitStringBySize(str, 4 * 8 * 1024).toArray(new String[0]));
                         subscriber.onCompleted();
                     } else {
                         subscriber.onError(new UnknownFormatConversionException("failed to convert " + filePath + " to string"));
@@ -273,7 +299,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
                         @Override
                         public void onNext(String[] strings) {
-                            ChatActivity.this.uploadFile(file.getName(), file.length(), strings);
+                            uploadFile(file.getName(), file.length(), strings);
                         }
                     });
 
