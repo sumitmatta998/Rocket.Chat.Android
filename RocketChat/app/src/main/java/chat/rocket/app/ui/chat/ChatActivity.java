@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -22,7 +23,6 @@ import java.io.File;
 import java.util.List;
 import java.util.UnknownFormatConversionException;
 
-import chat.rocket.app.BuildConfig;
 import chat.rocket.app.R;
 import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.MessageDAO;
@@ -51,7 +51,7 @@ import timber.log.Timber;
 /**
  * Created by julio on 29/11/15.
  */
-public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, AudioRecordFragment.AudioRecordCallback, LoaderManager.LoaderCallbacks<Cursor> {
+public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, FileCallback, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
@@ -148,11 +148,11 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
     }
 
-    private void uploadFile(String name, long size, String[] parts) {
-        String protocol = (BuildConfig.WS_PROTOCOL.equals("wss") ? "https://" : "http://");
+    private void uploadFile(String name, String media, long size, String[] parts) {
+
         String extension = name.substring(name.length() - 3);
-        mRxRocketMethods.uploadFile(protocol + BuildConfig.WS_HOST, mRxMeteor.getUserId(),
-                mRcSubscription.getRid(), name, parts, "audio/" + extension, extension, size)
+        mRxRocketMethods.uploadFile(Util.getServerUrl(), mRxMeteor.getUserId(),
+                mRcSubscription.getRid(), name, parts, media + "/" + extension, extension, size)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Float>() {
@@ -257,10 +257,10 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
 
     @Override
-    public void processFile(String filePath) {
+    public void processFile(String filePath, String media) {
         mFabMenu.onBackPressed();
         mUploadProgress.setVisibility(View.VISIBLE);
-        File file = new File(filePath);
+        File file = new File(Util.getPath(getApplicationContext(), Uri.parse(filePath)));
         if (file.exists()) {
             Observable.create(new Observable.OnSubscribe<String[]>() {
                 @Override
@@ -290,7 +290,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
                         @Override
                         public void onNext(String[] strings) {
-                            uploadFile(file.getName(), file.length(), strings);
+                            uploadFile(file.getName(), media, file.length(), strings);
                         }
                     });
         }

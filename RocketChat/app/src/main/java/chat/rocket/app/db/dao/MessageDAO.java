@@ -14,6 +14,7 @@ import chat.rocket.rc.models.FileId;
 import chat.rocket.rc.models.Message;
 import chat.rocket.rc.models.TimeStamp;
 import chat.rocket.rc.models.UrlParts;
+import timber.log.Timber;
 
 import static chat.rocket.app.db.util.TableBuilder.INTEGER;
 import static chat.rocket.app.db.util.TableBuilder.ON_CONFLICT_REPLACE;
@@ -66,6 +67,9 @@ public class MessageDAO extends Message implements ContentValuables {
         values.put(COLUMN_RID, rid);
         values.put(COLUMN_TS, ts != null ? ts.getDate() : 0);
         values.put(COLUMN_EDITED_AT, editedAt != null ? editedAt.getDate() : 0);
+        if(type == null){
+            Timber.d("nullllllllllllllll");
+        }
         values.put(COLUMN_TYPE, type != null ? type.name() : null);
         values.put(COLUMN_FILE_ID, file != null ? file.getId() : null);
         values.put(COLUMN_SCORE, score);

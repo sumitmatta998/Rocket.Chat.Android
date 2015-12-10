@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.R;
+import chat.rocket.app.ui.chat.FileCallback;
 import chat.rocket.app.utils.Util;
 import rx.Observable;
 import rx.Subscription;
@@ -42,10 +43,6 @@ import timber.log.Timber;
 public class AudioRecordFragment extends Fragment {
     //TODO: why do I limit the recording time? I don't know, I will think about it... :-P
     private static final int MAX_DURATION = 10000;
-
-    public interface AudioRecordCallback {
-        void processFile(String filename);
-    }
 
 
     private AudioRecordingThread recordingThread;
@@ -65,7 +62,7 @@ public class AudioRecordFragment extends Fragment {
         }
     };
     private View mSendButton;
-    private AudioRecordCallback mCallback;
+    private FileCallback mCallback;
 
     private void onRecord(boolean start) {
         mPlayButton.setEnabled(!start);
@@ -243,7 +240,7 @@ public class AudioRecordFragment extends Fragment {
         mPlayButton.setOnClickListener(mPlayButtonListener);
         mSendButton = view.findViewById(R.id.SendButton);
         mSendButton.setOnClickListener(v -> {
-            mCallback.processFile(mFileName);
+            mCallback.processFile(mFileName, "audio");
 
         });
 
@@ -330,6 +327,6 @@ public class AudioRecordFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mCallback = (AudioRecordCallback) context;
+        mCallback = (FileCallback) context;
     }
 }
