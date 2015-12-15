@@ -22,11 +22,10 @@
             android:maxLines="1"
             android:textStyle="bold" />
 
-        <TextView
+        <chat.rocket.app.ui.widgets.LinkfiedTextView
             android:id="@+id/messageTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autoLink="email|phone|web"
             android:paddingBottom="8dp"
             android:paddingRight="8dp"
             android:paddingTop="8dp" />

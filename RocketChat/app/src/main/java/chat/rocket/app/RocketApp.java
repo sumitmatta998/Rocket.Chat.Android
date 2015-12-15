@@ -119,8 +119,8 @@ public class RocketApp extends Application implements Persistence {
                     }
                 }, throwable -> {
                     onException(throwable);
-                    mRxMeteor.disconnect().
-                            subscribeOn(Schedulers.io())
+                    mRxMeteor.disconnect()
+                            .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Subscriber<Void>() {
                                 @Override

@@ -18,6 +18,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
@@ -294,5 +295,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                         }
                     });
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        //TODO: open user profile
+        onMenuItemClick(R.id.MembersButton);
+        Toast.makeText(ChatActivity.this, intent.getData().toString(), Toast.LENGTH_SHORT).show();
     }
 }

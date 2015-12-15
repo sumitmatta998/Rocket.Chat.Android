@@ -3,6 +3,7 @@ package chat.rocket.app.ui.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,15 @@ import android.widget.TextView;
 import chat.rocket.app.R;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.widgets.AvatarView;
+import chat.rocket.app.ui.widgets.LinkfiedTextView;
 import chat.rocket.rc.models.Message;
+
 
 /**
  * Created by julio on 29/11/15.
  */
 public class MessagesAdapter extends CursorAdapter {
+
 
     public MessagesAdapter(Context context) {
         super(context, null, false);
@@ -30,8 +34,7 @@ public class MessagesAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         Message message = new MessageDAO(cursor);
-        TextView messageTextview = (TextView) view.findViewById(R.id.messageTextView);
-
+        LinkfiedTextView messageTextView = (LinkfiedTextView) view.findViewById(R.id.messageTextView);
         String username = message.getUsernameId().getUsername();
         String msg = message.getMsg();
 
@@ -40,7 +43,7 @@ public class MessagesAdapter extends CursorAdapter {
             //https://github.com/RocketChat/Rocket.Chat/blob/develop/i18n/en.i18n.json
             switch (message.getType()) {
                 case MESSAGE_REMOVED:
-                    msg = "message removed";
+                    msg = "Message removed";
                     break;
                 case WELCOME:
                     msg = "Welcome " + username;
@@ -70,7 +73,7 @@ public class MessagesAdapter extends CursorAdapter {
                 default:
             }
         }
-        messageTextview.setText(msg);
+        messageTextView.setLinkText(msg);
 
         AvatarView avatarView = (AvatarView) view.findViewById(R.id.avatarView);
         avatarView.loadAvatarTo(username);

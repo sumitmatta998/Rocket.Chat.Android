@@ -11,20 +11,31 @@ import android.text.TextUtils;
 
 import chat.rocket.app.BuildConfig;
 import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.ui.widgets.LinkfiedTextView;
 
 
 public class DBContentProvider extends ContentProvider {
     public static final String ONE_ROW_LIMIT = "one_row_limit";
     public static final String ORDER_BY = " ORDER BY ";
-    private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
+    private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider/";
     public static final String RAW_QUERY = "RAW_QUERY";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final String FILTER = "filter";
+    public static final Uri WEB_CONTENT_URI = BASE_CONTENT_URI.buildUpon().build();
+    public static final Uri USERNAME_CONTENT_URI = BASE_CONTENT_URI.buildUpon().build();
     private SQLiteHelper mSqlHelper;
 
 
     @Override
     public String getType(Uri uri) {
+        //TODO: Impove the matcher
+        String path = uri.getPath().replaceFirst("/", "");
+        if (LinkfiedTextView.sUrlMatcher.matcher(path).matches()) {
+            return "vnd.android.cursor.item/vnd." + BuildConfig.APPLICATION_ID + ".provider.text_html";
+        }
+        if (LinkfiedTextView.sUsernameMatcher.matcher(path).matches()) {
+            return "vnd.android.cursor.item/vnd." + BuildConfig.APPLICATION_ID + ".provider.user_name";
+        }
         return "vnd.android.cursor.dir/vnd." + AUTHORITY;
     }
 

@@ -338,7 +338,7 @@ public class Meteor {
             if (mCallback != null) {
                 mCallback.onException(e);
             }
-            Listener listener = mListeners.remove(callId);
+            final Listener listener = mListeners.remove(callId);
             if (listener != null) {
                 if (listener instanceof ResultListener) {
                     ((ResultListener) listener).onError(new MeteorException(e));
