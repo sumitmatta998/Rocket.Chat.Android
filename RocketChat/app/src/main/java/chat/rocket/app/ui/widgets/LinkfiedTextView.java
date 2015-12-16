@@ -20,7 +20,7 @@ public class LinkfiedTextView extends TextView {
     public static Pattern sUrlMatcher = Pattern.compile("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
     private static String sUsernameProvider = DBContentProvider.USERNAME_CONTENT_URI.toString();
-    public static Pattern sUsernameMatcher = Pattern.compile("(?:^||\\n)(@:?)[0-9a-zA-Z-_.]+[:.,]?");
+    public static Pattern sUsernameMatcher = Pattern.compile("(?:^||\\n)(@:?)[0-9a-zA-Z-_.]+");
 
     public LinkfiedTextView(Context context) {
         super(context);

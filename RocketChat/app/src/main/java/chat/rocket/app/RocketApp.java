@@ -208,7 +208,6 @@ public class RocketApp extends Application implements Persistence {
                 addStreamMessages(documentID, newValuesJson);
                 break;
             case RcSubscriptionDAO.COLLECTION_NAME:
-
                 addRcSubscription(documentID, newValuesJson);
                 break;
             case StreamNotifyRoom.COLLECTION_NAME:

@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import chat.rocket.app.db.dao.CollectionDAO;
+import chat.rocket.app.utils.Util;
 import chat.rocket.rc.enumerations.ChannelType;
 import chat.rocket.rc.models.UsernameId;
 
@@ -50,5 +52,14 @@ public class RCRoom {
 
     public void setUsernames(List<String> usernames) {
         this.usernames = usernames;
+    }
+
+    public static RCRoom getRCRoom(String rid) {
+        CollectionDAO dao = CollectionDAO.query(RCRoom.COLLECTION_NAME, rid);
+        RCRoom room = null;
+        if (dao != null) {
+            room = Util.GSON.fromJson(dao.getNewValuesJson(), RCRoom.class);
+        }
+        return room;
     }
 }
