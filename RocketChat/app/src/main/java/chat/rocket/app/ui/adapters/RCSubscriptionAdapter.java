@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import chat.rocket.app.db.dao.RcSubscriptionDAO;
-import chat.rocket.models.RCSubscription;
+import chat.rocket.models.RcSubscription;
 
 /**
  * Created by julio on 29/11/15.
@@ -25,18 +25,18 @@ public class RCSubscriptionAdapter extends CursorAdapter {
         return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
     }
 
-    public RCSubscription getItem(Cursor cursor) {
+    public RcSubscription getItem(Cursor cursor) {
         return new RcSubscriptionDAO(cursor);
     }
 
-    public RCSubscription getItem(int position) {
+    public RcSubscription getItem(int position) {
         return getItem((Cursor) super.getItem(position));
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView text1 = (TextView) view.findViewById(android.R.id.text1);
-        RCSubscription item = getItem(cursor);
+        RcSubscription item = getItem(cursor);
 
         int unread = item.getUnread();
 

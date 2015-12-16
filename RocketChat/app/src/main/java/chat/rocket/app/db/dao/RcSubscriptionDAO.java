@@ -13,7 +13,7 @@ import chat.rocket.app.db.DBContentProvider;
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.util.ContentValuables;
 import chat.rocket.app.db.util.TableBuilder;
-import chat.rocket.models.RCSubscription;
+import chat.rocket.models.RcSubscription;
 import chat.rocket.rc.enumerations.ChannelType;
 import chat.rocket.rc.models.TimeStamp;
 
@@ -24,13 +24,14 @@ import static chat.rocket.app.db.util.TableBuilder.TEXT;
 /**
  * Created by julio on 01/12/15.
  */
-public class RcSubscriptionDAO extends RCSubscription implements ContentValuables {
+public class RcSubscriptionDAO extends RcSubscription implements ContentValuables {
 
     public static final String COLLECTION_NAME = "rocketchat_subscription";
 
     public static final String TABLE_NAME = "rc_subs";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_ALERT = "alert";
+    public static final String COLUMN_F = "f";
     public static final String COLUMN_LS = "ls";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_OPEN = "open";
@@ -44,6 +45,7 @@ public class RcSubscriptionDAO extends RCSubscription implements ContentValuable
         TableBuilder tb = new TableBuilder(TABLE_NAME);
         tb.setPrimaryKey(COLUMN_ID, INTEGER, true);
         tb.addColumn(COLUMN_ALERT, INTEGER, false);
+        tb.addColumn(COLUMN_F, INTEGER, false);
         tb.addColumn(COLUMN_LS, INTEGER, false);
         tb.addColumn(COLUMN_NAME, TEXT, true);
         tb.addColumn(COLUMN_OPEN, INTEGER, false);
@@ -60,6 +62,7 @@ public class RcSubscriptionDAO extends RCSubscription implements ContentValuable
 
     public RcSubscriptionDAO(Cursor cursor) {
         alert = cursor.getInt(cursor.getColumnIndex(COLUMN_ALERT)) > 0;
+        favorited = cursor.getInt(cursor.getColumnIndex(COLUMN_F)) > 0;
         long time = cursor.getLong(cursor.getColumnIndex(COLUMN_LS));
         if (time != 0) {
             ls = new TimeStamp(time);
@@ -82,6 +85,7 @@ public class RcSubscriptionDAO extends RCSubscription implements ContentValuable
     public ContentValues toContentValues() {
         ContentValues values = new ContentValues();
         values.put(COLUMN_ALERT, alert ? 1 : 0);
+        values.put(COLUMN_F, favorited ? 1 : 0);
         values.put(COLUMN_LS, ls != null ? ls.getDate() : 0);
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_OPEN, open ? 1 : 0);
@@ -98,9 +102,9 @@ public class RcSubscriptionDAO extends RCSubscription implements ContentValuable
         return DBManager.getInstance().getLoader(uri, null, COLUMN_TYPE + "=?", new String[]{type.name()}, COLUMN_UNREAD + " DESC, " + COLUMN_TS + " DESC");
     }
 
-    public static Loader<Cursor> getLoader() {
+    public static Loader<Cursor> getLoader(boolean favorited) {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
-        return DBManager.getInstance().getLoader(uri, null, null, null, COLUMN_UNREAD + " DESC, " + COLUMN_LS + " DESC");
+        return DBManager.getInstance().getLoader(uri, null, COLUMN_F + "=?", new String[]{favorited ? "1" : "0"}, COLUMN_UNREAD + " DESC, " + COLUMN_LS + " DESC");
     }
 
     public void insert(String documentId) {

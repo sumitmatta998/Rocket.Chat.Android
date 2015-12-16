@@ -14,7 +14,7 @@ public class FavoritesTabFragment extends RCSubscriptionsTabFragment {
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return RcSubscriptionDAO.getLoader();
+        return RcSubscriptionDAO.getLoader(true);
     }
 
     protected int getLoaderId() {

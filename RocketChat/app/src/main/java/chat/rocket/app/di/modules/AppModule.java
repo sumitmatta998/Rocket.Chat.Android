@@ -1,4 +1,4 @@
-package chat.rocket.app.di;
+package chat.rocket.app.di.modules;
 
 import android.app.Application;
 

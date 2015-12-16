@@ -39,7 +39,7 @@ import chat.rocket.app.ui.chat.record.AudioRecordFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
-import chat.rocket.models.RCSubscription;
+import chat.rocket.models.RcSubscription;
 import chat.rocket.rc.models.Message;
 import meteor.operations.MeteorException;
 import meteor.operations.Protocol;
@@ -55,7 +55,7 @@ import timber.log.Timber;
 public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, FileCallback, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
-    private RCSubscription mRcSubscription;
+    private RcSubscription mRcSubscription;
     private FabMenuLayout mFabMenu;
 
     private ListView mListView;
@@ -95,7 +95,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        mRcSubscription = (RCSubscription) getIntent().getSerializableExtra(RC_SUB);
+        mRcSubscription = (RcSubscription) getIntent().getSerializableExtra(RC_SUB);
         mFabMenu = (FabMenuLayout) findViewById(R.id.FabMenu);
         mListView = (ListView) findViewById(R.id.listview);
         mSendEditText = (EditText) findViewById(R.id.SubmitEditText);

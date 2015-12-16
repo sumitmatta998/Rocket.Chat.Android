@@ -10,7 +10,7 @@ import chat.rocket.rc.models.TimeStamp;
 /**
  * Created by julio on 24/11/15.
  */
-public class RCSubscription implements Serializable {
+public class RcSubscription implements Serializable {
     protected boolean alert;
     protected TimeStamp ls;
     protected String name;
@@ -20,6 +20,16 @@ public class RCSubscription implements Serializable {
     protected ChannelType type;
     protected TimeStamp ts;
     protected int unread;
+    @SerializedName("f")
+    protected boolean favorited;
+
+    public boolean isFavorited() {
+        return favorited;
+    }
+
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
+    }
 
     public boolean hasAlert() {
         return alert;

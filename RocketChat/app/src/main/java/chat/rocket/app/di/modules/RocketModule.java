@@ -1,4 +1,4 @@
-package chat.rocket.app.di;
+package chat.rocket.app.di.modules;
 
 import chat.rocket.app.di.scopes.ServerScope;
 import chat.rocket.rc.RocketMethods;

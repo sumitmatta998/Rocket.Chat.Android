@@ -1,10 +1,8 @@
 package chat.rocket.app.di.components;
 
-import chat.rocket.app.RocketApp;
-import chat.rocket.app.di.AppModule;
-import chat.rocket.app.di.RocketModule;
+import chat.rocket.app.di.modules.AppModule;
+import chat.rocket.app.di.modules.RocketModule;
 import chat.rocket.app.di.scopes.AppScope;
-import chat.rocket.rxrc.RxRocketMethods;
 import dagger.Component;
 
 /**

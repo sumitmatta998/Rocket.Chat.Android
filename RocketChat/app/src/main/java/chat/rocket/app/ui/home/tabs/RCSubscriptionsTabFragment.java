@@ -17,7 +17,7 @@ import chat.rocket.app.R;
 import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.app.ui.adapters.RCSubscriptionAdapter;
 import chat.rocket.app.ui.chat.ChatActivity;
-import chat.rocket.models.RCSubscription;
+import chat.rocket.models.RcSubscription;
 import chat.rocket.rc.enumerations.ChannelType;
 
 /**
@@ -28,7 +28,7 @@ public class RCSubscriptionsTabFragment extends Fragment implements LoaderManage
     private ListView mListView;
     private RCSubscriptionAdapter mAdapter;
     private AdapterView.OnItemClickListener mListViewListener = (parent, view, position, id) -> {
-        RCSubscription item = mAdapter.getItem(position);
+        RcSubscription item = mAdapter.getItem(position);
         Intent intent = new Intent(getContext(), ChatActivity.class);
         intent.putExtra(ChatActivity.RC_SUB, item);
         startActivity(intent);

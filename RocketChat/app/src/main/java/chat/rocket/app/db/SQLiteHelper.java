@@ -35,7 +35,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "SQLiteHelper";
     private static final String DATABASE_NAME = "data";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static SQLiteHelper mInstance;
 
     private SQLiteHelper(Context context) {
