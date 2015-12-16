@@ -3,7 +3,7 @@ package chat.rocket.app.db.collections;
 /**
  * Created by julio on 24/11/15.
  */
-public class RCPermissions {
+public class RcPermissions {
     /*collection\":\"rocketchat_permissions\",\"id\":\"add-oath-service\",\"fields\":{\"roles\":[\"admin\"]
  collection\":\"rocketchat_permissions\",\"id\":\"add-oauth-service\",\"fields\":{\"roles\":[\"admin\"]
  collection\":\"rocketchat_permissions\",\"id\":\"assign-admin-role\",\"fields\":{\"roles\":[\"admin\"]

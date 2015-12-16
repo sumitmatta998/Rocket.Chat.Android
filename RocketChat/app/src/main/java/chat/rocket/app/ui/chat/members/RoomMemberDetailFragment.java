@@ -1,4 +1,4 @@
-package chat.rocket.app.ui.home.users;
+package chat.rocket.app.ui.chat.members;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;

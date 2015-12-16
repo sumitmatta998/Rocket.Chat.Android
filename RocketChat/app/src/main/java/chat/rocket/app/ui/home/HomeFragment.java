@@ -48,10 +48,10 @@ public class HomeFragment extends Fragment {
     }
 
     enum TABS {
+        FAVORITES(FavoritesTabFragment.class.getName(), R.string.favorites, R.drawable.ic_star_white_24dp),
         CHANNELS(RCSubscriptionsTabFragment.class.getName(), R.string.channels, R.drawable.ic_forum_white_24dp),
         DIRECT_MESSAGES(DirectMessagesTabFragment.class.getName(), R.string.dms, R.drawable.ic_person_pin_white_24dp),
-        PRIVATE_GROUPS(PrivateGroupsTabFragment.class.getName(), R.string.private_groups, R.drawable.ic_forum_lock_white_24dp),
-        FAVORITES(FavoritesTabFragment.class.getName(), R.string.favorites, R.drawable.ic_star_white_24dp);
+        PRIVATE_GROUPS(PrivateGroupsTabFragment.class.getName(), R.string.private_groups, R.drawable.ic_forum_lock_white_24dp);
 
         private final String fragName;
         private final int icon;

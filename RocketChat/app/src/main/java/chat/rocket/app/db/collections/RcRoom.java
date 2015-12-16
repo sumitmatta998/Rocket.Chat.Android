@@ -12,7 +12,7 @@ import chat.rocket.rc.models.UsernameId;
 /**
  * Created by julio on 29/11/15.
  */
-public class RCRoom {
+public class RcRoom {
     public static final String COLLECTION_NAME = "rocketchat_room";
 
     private String name;
@@ -54,11 +54,11 @@ public class RCRoom {
         this.usernames = usernames;
     }
 
-    public static RCRoom getRCRoom(String rid) {
-        CollectionDAO dao = CollectionDAO.query(RCRoom.COLLECTION_NAME, rid);
-        RCRoom room = null;
+    public static RcRoom getRCRoom(String rid) {
+        CollectionDAO dao = CollectionDAO.query(RcRoom.COLLECTION_NAME, rid);
+        RcRoom room = null;
         if (dao != null) {
-            room = Util.GSON.fromJson(dao.getNewValuesJson(), RCRoom.class);
+            room = Util.GSON.fromJson(dao.getNewValuesJson(), RcRoom.class);
         }
         return room;
     }

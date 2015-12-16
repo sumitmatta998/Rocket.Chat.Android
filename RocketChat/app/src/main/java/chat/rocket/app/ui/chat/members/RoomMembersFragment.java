@@ -1,4 +1,4 @@
-package chat.rocket.app.ui.home.users;
+package chat.rocket.app.ui.chat.members;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,7 +11,7 @@ import android.widget.ListView;
 import java.util.List;
 
 import chat.rocket.app.R;
-import chat.rocket.app.db.collections.RCRoom;
+import chat.rocket.app.db.collections.RcRoom;
 import chat.rocket.app.ui.adapters.UsernamesAdapter;
 
 /**
@@ -38,7 +38,7 @@ public class RoomMembersFragment extends Fragment {
         String username = getArguments().getString(USERNAME);
 
         //TODO: Make it async
-        RCRoom room = RCRoom.getRCRoom(rid);
+        RcRoom room = RcRoom.getRCRoom(rid);
 
         List<String> usernames = room.getUsernames();
         mAdapter = new UsernamesAdapter(getActivity(), usernames);

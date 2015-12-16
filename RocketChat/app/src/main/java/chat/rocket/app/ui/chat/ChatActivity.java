@@ -28,13 +28,14 @@ import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
 import chat.rocket.app.ui.base.BaseActivity;
+import chat.rocket.app.ui.chat.files.FileCallback;
+import chat.rocket.app.ui.chat.files.FileListFragment;
+import chat.rocket.app.ui.chat.members.RoomMembersFragment;
+import chat.rocket.app.ui.chat.menu.PinnedMessagesFragment;
+import chat.rocket.app.ui.chat.menu.RoomSettingsFragment;
+import chat.rocket.app.ui.chat.menu.SearchFragment;
+import chat.rocket.app.ui.chat.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.chat.record.AudioRecordFragment;
-import chat.rocket.app.ui.home.menu.FileListFragment;
-import chat.rocket.app.ui.home.menu.PinnedMessagesFragment;
-import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
-import chat.rocket.app.ui.home.menu.SearchFragment;
-import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
-import chat.rocket.app.ui.home.users.RoomMembersFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
@@ -54,7 +55,6 @@ import timber.log.Timber;
 public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, FileCallback, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
-    private static final int RECORD_AUDIO_REQUEST_CODE = 123;
     private RCSubscription mRcSubscription;
     private FabMenuLayout mFabMenu;
 
