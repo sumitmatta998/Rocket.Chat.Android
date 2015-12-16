@@ -28,8 +28,9 @@ import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
+
 import chat.rocket.app.RocketApp;
-import chat.rocket.rc.RocketMethods;
 import chat.rocket.rxrc.RxRocketMethods;
 import rx.Subscriber;
 
@@ -40,6 +41,8 @@ public class RocketRegistrationIntentService extends IntentService {
 
     private SharedPreferences mSharedPreferences;
 
+    @Inject RxRocketMethods mRxMethods;
+
     public RocketRegistrationIntentService() {
         super(TAG);
 
@@ -47,6 +50,7 @@ public class RocketRegistrationIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        mRxMethods = ((RocketApp)getApplicationContext()).getRxMethods();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         try {
 
@@ -78,11 +82,10 @@ public class RocketRegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         //TODO: find out if we are connected and the user logged...
-        RxRocketMethods methods = new RxRocketMethods(new RocketMethods(((RocketApp) getApplicationContext()).getMeteor()));
 
         //Notes: Don't go to background thread, onHandleIntent processing need to be sync, we are alread out of main thread
-        methods.setPushUser()
-                .flatMap(s -> methods.updatePush(token))
+        mRxMethods.setPushUser()
+                .flatMap(s -> mRxMethods.updatePush(token))
                 .subscribe(new Subscriber<String>() {
             @Override
             public void onCompleted() {

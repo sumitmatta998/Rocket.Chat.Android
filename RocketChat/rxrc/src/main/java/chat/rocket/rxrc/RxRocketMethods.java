@@ -365,9 +365,9 @@ public class RxRocketMethods {
         return Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(final Subscriber<? super String> subscriber) {
-                mMethods.updatePush(token, new RegisterUserListener() {
+                mMethods.updatePush(token, new ResultListener() {
                     @Override
-                    public void onResult(String result) {
+                    public void onSuccess(String result) {
                         subscriber.onNext(result);
                         subscriber.onCompleted();
                     }

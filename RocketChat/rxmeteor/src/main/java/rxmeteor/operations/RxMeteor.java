@@ -3,8 +3,8 @@ package rxmeteor.operations;
 
 import android.util.Pair;
 
+import meteor.operations.Meteor;
 import meteor.operations.MeteorCallback;
-import meteor.operations.MeteorSingleton;
 import meteor.operations.Persistence;
 import rx.Observable;
 import rx.functions.Action1;
@@ -17,7 +17,7 @@ import static rxmeteor.operations.DataEvent.DataType.REMOVE;
  * Created by julio on 05/12/15.
  */
 public class RxMeteor {
-    private final MeteorSingleton mMeteor;
+    private final Meteor mMeteor;
     private final Persistence mPersistence = new Persistence() {
         @Override
         public String getString(String key) {
@@ -32,7 +32,7 @@ public class RxMeteor {
     private Action1<Boolean> mConnectObserver;
     private Action1<Pair<Integer, String>> mDisconnectObserver;
 
-    public RxMeteor(MeteorSingleton meteor) {
+    public RxMeteor(Meteor meteor) {
         mMeteor = meteor;
     }
 

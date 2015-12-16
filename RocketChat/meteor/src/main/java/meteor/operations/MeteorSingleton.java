@@ -91,10 +91,6 @@ public class MeteorSingleton extends Meteor implements meteor.operations.MeteorC
         }
     }
 
-    public void disconnect() {
-        disconnect(CloseCode.NORMAL, "bye");
-    }
-
     @Override
     public void onDisconnect(final int code, final String reason) {
         for (meteor.operations.MeteorCallback callback : mCallbacks) {

@@ -29,10 +29,8 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:'+rootProject.ext.junitVersion
     compile project(':meteor')
-    apt 'com.google.dagger:dagger-compiler:' + rootProject.ext.daggerVersion
-    compile 'com.google.dagger:dagger:' + rootProject.ext.daggerVersion
-    compile 'io.reactivex:rxjava:1.1.0'
+    compile 'io.reactivex:rxjava:'+rootProject.ext.rxjavaVersion
     compile project(':timber')
 }
