@@ -173,14 +173,14 @@ public class Util {
      * Framework Documents, as well as the _data field for the MediaStore and
      * other file-based ContentProviders.
      *
-     * @param context The context.
-     * @param uri     The Uri to query.
+     * @param context  The context.
+     * @param filePath The Uri to query.
      * @author paulburke
      * from: https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
      */
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public static String getPath(final Context context, final Uri uri) {
-
+    public static String getPath(final Context context, final String filePath) {
+        Uri uri = Uri.parse(filePath);
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
         // DocumentProvider
@@ -238,7 +238,7 @@ public class Util {
             return uri.getPath();
         }
 
-        return null;
+        return filePath;
     }
 
     /**

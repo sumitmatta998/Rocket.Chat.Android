@@ -330,10 +330,13 @@ public class RocketMethods {
         //TODO: What is this id?
         final String id = mMeteor.uniqueID().replace("-", "").substring(0, 17);
 
+        final String media = type + "/" + extension;
+
+
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("name", name);
         data.put("size", size);
-        data.put("type", type);
+        data.put("type", media);
         data.put("rid", rid);
         data.put("_id", id);
         data.put("complete", false);
@@ -345,16 +348,29 @@ public class RocketMethods {
         final ResultListener ufsCompletelistener = new ResultListener() {
             @Override
             public void onSuccess(String result) {
-
-                String msg = "*File Uploaded*: " + name + "\n" + host + "/ufs/rocketchat_uploads/" + id;
+                String filepath = "/ufs/" + store + "/" + id + "." + extension;
+                String title = "*File Uploaded*: " + name + "\n" + host + filepath;
                 Map<String, Object> data = new HashMap<String, Object>();
 
                 data.put("rid", rid);
-                data.put("msg", msg);
+                data.put("msg", "");
+
+                data.put("groupable", false);
 
                 Map<String, String> file = new HashMap<String, String>();
                 file.put("_id", id);
                 data.put("file", file);
+
+
+                Map<String, Object> attachments = new HashMap<String, Object>();
+
+                attachments.put("title", title);
+                attachments.put("title_link", filepath);
+                attachments.put(type + "_url", filepath);
+                attachments.put(type + "_type", media);
+                attachments.put(type + "_size", size);
+
+                data.put("attachments", new Object[]{attachments});
 
                 mMeteor.call("sendMessage", new Object[]{data}, listener);
 

@@ -156,7 +156,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
 
         String extension = name.substring(name.length() - 3);
         mRxRocketMethods.uploadFile(Util.getServerUrl(), mRxMeteor.getUserId(),
-                mRcSubscription.getRid(), name, parts, media + "/" + extension, extension, size)
+                mRcSubscription.getRid(), name, parts, media, extension, size)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Float>() {
@@ -264,7 +264,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     public void processFile(String filePath, String media) {
         mFabMenu.onBackPressed();
         mUploadProgress.setVisibility(View.VISIBLE);
-        File file = new File(Util.getPath(getApplicationContext(), Uri.parse(filePath)));
+        File file = new File(Util.getPath(getApplicationContext(), filePath));
         if (file.exists()) {
             Observable.create(new Observable.OnSubscribe<String[]>() {
                 @Override
