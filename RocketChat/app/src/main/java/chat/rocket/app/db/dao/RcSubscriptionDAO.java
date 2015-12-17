@@ -93,6 +93,11 @@ public class RcSubscriptionDAO extends RCSubscription implements ContentValuable
         return values;
     }
 
+    public static Loader<Cursor> getLoader(ChannelType type) {
+        Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
+        return DBManager.getInstance().getLoader(uri, null, COLUMN_TYPE + "=?", new String[]{type.name()}, COLUMN_UNREAD + " DESC, " + COLUMN_TS + " DESC");
+    }
+
     public static Loader<Cursor> getLoader() {
         Uri uri = DBContentProvider.BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
         return DBManager.getInstance().getLoader(uri, null, null, null, COLUMN_UNREAD + " DESC, " + COLUMN_LS + " DESC");

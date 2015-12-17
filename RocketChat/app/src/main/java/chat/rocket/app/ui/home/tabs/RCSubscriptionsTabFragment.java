@@ -18,6 +18,7 @@ import chat.rocket.app.db.dao.RcSubscriptionDAO;
 import chat.rocket.app.ui.adapters.RCSubscriptionAdapter;
 import chat.rocket.app.ui.chat.ChatActivity;
 import chat.rocket.models.RCSubscription;
+import chat.rocket.rc.enumerations.ChannelType;
 
 /**
  * Created by julio on 29/11/15.
@@ -46,12 +47,16 @@ public class RCSubscriptionsTabFragment extends Fragment implements LoaderManage
         mAdapter = new RCSubscriptionAdapter(getContext());
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(mListViewListener);
-        getLoaderManager().initLoader(LOADER_ID, null, this);
+        getLoaderManager().initLoader(getLoaderId(), null, this);
+    }
+
+    protected int getLoaderId() {
+        return LOADER_ID;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return RcSubscriptionDAO.getLoader();
+        return RcSubscriptionDAO.getLoader(ChannelType.CHANNEL);
     }
 
     @Override

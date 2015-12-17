@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import chat.rocket.app.R;
-import chat.rocket.app.ui.chat.FileCallback;
+import chat.rocket.app.ui.chat.files.FileCallback;
 import chat.rocket.app.utils.Util;
 import rx.Observable;
 import rx.Subscription;

@@ -13,6 +13,8 @@ import com.facebook.FacebookSdk;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import javax.inject.Inject;
+
 import chat.rocket.app.db.DBManager;
 import chat.rocket.app.db.collections.LoginServiceConfiguration;
 import chat.rocket.app.db.collections.StreamMessages;
@@ -20,16 +22,19 @@ import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.CollectionDAO;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.db.dao.RcSubscriptionDAO;
+import chat.rocket.app.di.AppModule;
+import chat.rocket.app.di.RocketModule;
+import chat.rocket.app.di.components.AppComponent;
+import chat.rocket.app.di.components.DaggerAppComponent;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
-import chat.rocket.rc.RocketSubscriptions;
 import chat.rocket.rc.enumerations.LoginService;
 import chat.rocket.rc.enumerations.NotifyActionType;
+import chat.rocket.rxrc.RxRocketMethods;
 import chat.rocket.rxrc.RxRocketSubscriptions;
 import io.fabric.sdk.android.Fabric;
 import meteor.operations.Meteor;
 import meteor.operations.MeteorException;
-import meteor.operations.MeteorSingleton;
 import meteor.operations.Persistence;
 import meteor.operations.Protocol;
 import rx.Observable;
@@ -52,8 +57,21 @@ public class RocketApp extends Application implements Persistence {
     public static final String LOGGED_KEY = "logged";
 
     private Subscription mConnectionSubscription;
-    private RxMeteor mRxMeteor;
-    private MeteorSingleton mMeteor;
+
+    //TODO: At some point It will be moved to a "ServersManager" where each connected server will have its own instances
+    //TODO: @ServerScope ??
+    //TODO: @SessionScope ??
+    //TODO: ServerScope > SessionScope!
+    @Inject
+    RxMeteor mRxMeteor;
+    @Inject
+    Meteor mMeteor;
+    @Inject
+    RxRocketMethods mRxRocketMethods;
+    @Inject
+    RxRocketSubscriptions mRxRocketSubscriptions;
+
+    private AppComponent mAppComponent;
 
 
     @Override
@@ -68,12 +86,17 @@ public class RocketApp extends Application implements Persistence {
         } else {
             Fabric.with(this, new Crashlytics());
         }
-        String url = BuildConfig.WS_PROTOCOL + "://" + BuildConfig.WS_HOST + BuildConfig.WS_PATH;
-        mMeteor = MeteorSingleton.createInstance(this, url, Meteor.SUPPORTED_DDP_VERSIONS[0]);
-        mRxMeteor = new RxMeteor(mMeteor);
         FacebookSdk.sdkInitialize(getApplicationContext());
         DBManager.getInstance().init(this);
 
+        mAppComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
+
+        String url = BuildConfig.WS_PROTOCOL + "://" + BuildConfig.WS_HOST + BuildConfig.WS_PATH;
+        mAppComponent.plus(new RocketModule(url)).inject(this);
+    }
+
+    public AppComponent getAppComponent() {
+        return mAppComponent;
     }
 
     private void setupTimber() {
@@ -140,28 +163,24 @@ public class RocketApp extends Application implements Persistence {
                             });
                 });
 
-        mMeteor.reconnect();
+        mRxMeteor.reconnect();
     }
 
     public void onConnect(boolean signedInAutomatically) {
 
-        RocketSubscriptions subs = new RocketSubscriptions(MeteorSingleton.getInstance());
-        RxRocketSubscriptions rxSubs = new RxRocketSubscriptions(subs);
-
-        //Note: using flatmap to try avoid backpressure
-        rxSubs.loginServiceConfiguration()
-                .flatMap(aVoid -> rxSubs.settings())
-                .flatMap(aVoid0 -> rxSubs.streamNotifyRoom())
-                .flatMap(aVoid1 -> rxSubs.streamNotifyAll())
-                .flatMap(aVoid2 -> rxSubs.streamNotifyUser())
-                .flatMap(aVoid3 -> rxSubs.roles())
-                .flatMap(aVoid4 -> rxSubs.permissions())
-                .flatMap(aVoid5 -> rxSubs.streamMessages())
-                .flatMap(aVoid6 -> rxSubs.meteorAutoupdateClientVersions())
-                .flatMap(aVoid7 -> rxSubs.subscription())
-                .flatMap(aVoid8 -> rxSubs.userData())
-                .flatMap(aVoid9 -> rxSubs.activeUsers())
-                .flatMap(aVoid10 -> rxSubs.adminSettings())
+        mRxRocketSubscriptions.loginServiceConfiguration()
+                .flatMap(aVoid -> mRxRocketSubscriptions.settings())
+                .flatMap(aVoid0 -> mRxRocketSubscriptions.streamNotifyRoom())
+                .flatMap(aVoid1 -> mRxRocketSubscriptions.streamNotifyAll())
+                .flatMap(aVoid2 -> mRxRocketSubscriptions.streamNotifyUser())
+                .flatMap(aVoid3 -> mRxRocketSubscriptions.roles())
+                .flatMap(aVoid4 -> mRxRocketSubscriptions.permissions())
+                .flatMap(aVoid5 -> mRxRocketSubscriptions.streamMessages())
+                .flatMap(aVoid6 -> mRxRocketSubscriptions.meteorAutoupdateClientVersions())
+                .flatMap(aVoid7 -> mRxRocketSubscriptions.subscription())
+                .flatMap(aVoid8 -> mRxRocketSubscriptions.userData())
+                .flatMap(aVoid9 -> mRxRocketSubscriptions.activeUsers())
+                .flatMap(aVoid10 -> mRxRocketSubscriptions.adminSettings())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Void>() {
@@ -200,6 +219,7 @@ public class RocketApp extends Application implements Persistence {
         Intent intent = new Intent();
         intent.setAction(ACTION_DISCONNECTED);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Timber.d("Disconnect code:" + code + ", reason: " + reason);
     }
 
     public void onDataAdded(String collectionName, String documentID, String newValuesJson) {
@@ -208,7 +228,6 @@ public class RocketApp extends Application implements Persistence {
                 addStreamMessages(documentID, newValuesJson);
                 break;
             case RcSubscriptionDAO.COLLECTION_NAME:
-
                 addRcSubscription(documentID, newValuesJson);
                 break;
             case StreamNotifyRoom.COLLECTION_NAME:
@@ -356,11 +375,19 @@ public class RocketApp extends Application implements Persistence {
         PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, value).apply();
     }
 
-    public MeteorSingleton getMeteor() {
+    public Meteor getMeteor() {
         return mMeteor;
     }
 
     public RxMeteor getRxMeteor() {
         return mRxMeteor;
+    }
+
+    public RxRocketMethods getRxMethods() {
+        return mRxRocketMethods;
+    }
+
+    public RxRocketSubscriptions getRxSubscriptions() {
+        return mRxRocketSubscriptions;
     }
 }

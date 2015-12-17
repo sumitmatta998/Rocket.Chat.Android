@@ -7,11 +7,8 @@ import com.facebook.appevents.AppEventsLogger;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
 import chat.rocket.app.RocketApp;
-import chat.rocket.rc.RocketMethods;
-import chat.rocket.rc.RocketSubscriptions;
 import chat.rocket.rxrc.RxRocketMethods;
 import chat.rocket.rxrc.RxRocketSubscriptions;
-import meteor.operations.MeteorSingleton;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rxmeteor.operations.RxMeteor;
@@ -43,14 +40,10 @@ public class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //TODO: Use dagger, for god sakes
         RocketApp app = ((RocketApp) getApplication());
-        MeteorSingleton meteor = app.getMeteor();
         mRxMeteor = app.getRxMeteor();
-        RocketMethods rocketMethods = new RocketMethods(meteor);
-        mRxRocketMethods = new RxRocketMethods(rocketMethods);
-        RocketSubscriptions rocketSubscriptions = new RocketSubscriptions(meteor);
-        mRxRocketSubscriptions = new RxRocketSubscriptions(rocketSubscriptions);
+        mRxRocketMethods = app.getRxMethods();
+        mRxRocketSubscriptions = app.getRxSubscriptions();
     }
 
     protected void startMeteorConnection() {

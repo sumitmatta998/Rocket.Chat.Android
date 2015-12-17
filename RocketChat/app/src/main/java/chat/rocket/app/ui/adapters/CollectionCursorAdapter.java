@@ -1,4 +1,4 @@
-package chat.rocket.app.ui.base;
+package chat.rocket.app.ui.adapters;
 
 import android.content.Context;
 import android.database.Cursor;

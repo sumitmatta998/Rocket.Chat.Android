@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -61,6 +62,8 @@ public class AvatarView extends FrameLayout {
         Drawable background = mAvatarTextView.getBackground();
         if (background instanceof ShapeDrawable) {
             ((ShapeDrawable) background).getPaint().setColor(color);
+        } else if (background instanceof GradientDrawable) {
+            ((GradientDrawable) background).setColor(color);
         }
     }
 

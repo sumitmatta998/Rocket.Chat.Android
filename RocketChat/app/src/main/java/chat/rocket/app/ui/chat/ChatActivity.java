@@ -18,7 +18,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
@@ -29,13 +28,14 @@ import chat.rocket.app.db.collections.StreamNotifyRoom;
 import chat.rocket.app.db.dao.MessageDAO;
 import chat.rocket.app.ui.adapters.MessagesAdapter;
 import chat.rocket.app.ui.base.BaseActivity;
+import chat.rocket.app.ui.chat.files.FileCallback;
+import chat.rocket.app.ui.chat.files.FileListFragment;
+import chat.rocket.app.ui.chat.members.RoomMembersFragment;
+import chat.rocket.app.ui.chat.menu.PinnedMessagesFragment;
+import chat.rocket.app.ui.chat.menu.RoomSettingsFragment;
+import chat.rocket.app.ui.chat.menu.SearchFragment;
+import chat.rocket.app.ui.chat.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.chat.record.AudioRecordFragment;
-import chat.rocket.app.ui.home.menu.FileListFragment;
-import chat.rocket.app.ui.home.menu.MembersListFragment;
-import chat.rocket.app.ui.home.menu.PinnedMessagesFragment;
-import chat.rocket.app.ui.home.menu.RoomSettingsFragment;
-import chat.rocket.app.ui.home.menu.SearchFragment;
-import chat.rocket.app.ui.home.menu.StaredMessagesFragment;
 import chat.rocket.app.ui.widgets.FabMenuLayout;
 import chat.rocket.app.utils.Util;
 import chat.rocket.models.NotifyRoom;
@@ -55,7 +55,6 @@ import timber.log.Timber;
 public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClickListener, FileCallback, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RC_SUB = "sub";
     private static final int LOADER_ID = 3;
-    private static final int RECORD_AUDIO_REQUEST_CODE = 123;
     private RCSubscription mRcSubscription;
     private FabMenuLayout mFabMenu;
 
@@ -138,9 +137,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 });
 
         mRxRocketSubscriptions.room(mRcSubscription.getName(), mRcSubscription.getType())
+                .map(aVoid -> mRxRocketSubscriptions.fullUserData(null, 1))
+                .map(voidObservable -> mRxRocketSubscriptions.filteredUsers())
+                .map(voidObservable1 -> mRxRocketSubscriptions.channelAutocomplete())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe();
+
 
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
 
@@ -217,7 +220,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        //Note: why it does not surprise me?  Workaround: https://code.google.com/p/android/issues/detail?id=189121
+        //Note: why it does not surprise me?  Workaround for: https://code.google.com/p/android/issues/detail?id=189121
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment fragment : fragments) {
@@ -238,7 +241,7 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new SearchFragment()).commit();
                 break;
             case R.id.MembersButton:
-                getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new MembersListFragment()).commit();
+                openMemberList(null);
                 break;
             case R.id.FilesButton:
                 getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, new FileListFragment()).commit();
@@ -300,8 +303,13 @@ public class ChatActivity extends BaseActivity implements FabMenuLayout.MenuClic
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        //TODO: open user profile
-        onMenuItemClick(R.id.MembersButton);
-        Toast.makeText(ChatActivity.this, intent.getData().toString(), Toast.LENGTH_SHORT).show();
+        //NOTE: this method is called when the user clicks in some message that looks like an username
+        String content = intent.getData().toString();
+        String username = content.substring(content.indexOf("@") + 1);
+        openMemberList(username);
+    }
+
+    private void openMemberList(String username) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.MenuContentLayout, RoomMembersFragment.newInstace(mRcSubscription.getRid(), username)).commit();
     }
 }

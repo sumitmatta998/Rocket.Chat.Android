@@ -285,6 +285,10 @@ public class Meteor {
         send("", data);
     }
 
+    public void disconnect() {
+        disconnect(CloseCode.NORMAL, "bye");
+    }
+
     /**
      * Disconnect the client from the server
      */

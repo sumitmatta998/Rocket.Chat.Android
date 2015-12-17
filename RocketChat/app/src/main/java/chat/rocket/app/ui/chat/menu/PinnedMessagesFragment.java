@@ -1,4 +1,4 @@
-package chat.rocket.app.ui.home.menu;
+package chat.rocket.app.ui.chat.menu;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,10 +12,10 @@ import chat.rocket.app.R;
 /**
  * Created by julio on 26/11/15.
  */
-public class StaredMessagesFragment extends Fragment {
+public class PinnedMessagesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_stared_messages, container, false);
+        return inflater.inflate(R.layout.fragment_pinned_messages, container, false);
     }
 }

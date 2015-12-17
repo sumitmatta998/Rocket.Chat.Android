@@ -75,7 +75,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true;
     }
@@ -90,7 +89,8 @@ dependencies {
     compile 'com.android.support:design:'+rootProject.ext.supportVersion
     compile 'com.facebook.android:facebook-android-sdk:4.8.1'
 
-    compile 'io.reactivex:rxandroid:1.0.1'
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'io.reactivex:rxjava:'+rootProject.ext.rxjavaVersion
     compile 'com.trello:rxlifecycle:0.3.0'
     compile 'com.trello:rxlifecycle-components:0.3.0'
 
@@ -98,7 +98,10 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:3.6.1'
     compile 'com.makeramen:roundedimageview:2.2.1'
 
+    apt 'com.google.dagger:dagger-compiler:' + rootProject.ext.daggerVersion
+    compile 'com.google.dagger:dagger:' + rootProject.ext.daggerVersion
+
     compile project(':rxmeteor')
     compile project(':rxrc')
-    compile project(':androidrecording')
+    compile project(':recording')
 }

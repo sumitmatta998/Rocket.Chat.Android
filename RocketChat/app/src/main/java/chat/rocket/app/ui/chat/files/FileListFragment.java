@@ -1,4 +1,4 @@
-package chat.rocket.app.ui.home.menu;
+package chat.rocket.app.ui.chat.files;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import chat.rocket.app.R;
-import chat.rocket.app.ui.chat.FileCallback;
 
 /**
  * Created by julio on 26/11/15.
