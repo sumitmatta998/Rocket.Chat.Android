@@ -339,14 +339,14 @@ public class Meteor {
                 mConnection.sendMessage(request);
             }
         } catch (Exception e) {
-            if (mCallback != null) {
-                mCallback.onException(e);
-            }
             final Listener listener = mListeners.remove(callId);
             if (listener != null) {
                 if (listener instanceof ResultListener) {
                     ((ResultListener) listener).onError(new MeteorException(e));
                 }
+            }
+            if (mCallback != null) {
+                mCallback.onException(e);
             }
         }
     }

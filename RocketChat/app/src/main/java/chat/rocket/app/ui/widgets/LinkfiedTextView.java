@@ -8,6 +8,8 @@ import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
+import com.emojione.Emojione;
+
 import java.util.regex.Pattern;
 
 import chat.rocket.app.db.DBContentProvider;
@@ -49,7 +51,7 @@ public class LinkfiedTextView extends TextView {
     }
 
     public void setLinkText(String text) {
-        setText(text);
+        setText(Emojione.shortnameToUnicode(text, false));
         Linkify.addLinks(this, sUrlMatcher, sUrlProvider);
         Linkify.addLinks(this, sUsernameMatcher, sUsernameProvider);
     }
